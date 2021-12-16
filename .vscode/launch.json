@@ -11,9 +11,11 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "args" : ["--mode", "object_removal", 
-                      "--path", "data/tennis",
-                      "--path_mask", "data/tennis_mask",
-                      "--outroot", "result/tennis_removal",
+                      "--path", "data/dog",
+                      "--path_mask", "data/dog_mask",
+                      "--outroot", "result/dog_removal",
+                      "--model", "weight/raft-things.pth",
+                      "--deepfill_model", "weight/imagenet_deepfill.pth",
                ],
         }
     ]
