@@ -5,6 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 def weights_init(init_type='gaussian'):
     def init_fun(m):
@@ -208,7 +209,7 @@ class Flatten_Module(nn.Module):
 
 
 class Contextual_Attention_Module(nn.Module):
-    def __init__(self, in_ch, out_ch, rate=2, stride=1, isCheck=False, device=None):
+    def __init__(self, in_ch, out_ch, rate=2, stride=1, isCheck=False, device=DEVICE):
         super(Contextual_Attention_Module, self).__init__()
         self.rate = rate
         self.padding = nn.ZeroPad2d(1)
@@ -296,7 +297,7 @@ class Contextual_Attention_Module(nn.Module):
         offsets = []
         k = fuse_k
         scale = softmax_scale
-        fuse_weight = Variable(torch.eye(k).view(1, 1, k, k)).cuda(self.device) # 1 x 1 x K x K
+        fuse_weight = Variable(torch.eye(k).view(1, 1, k, k)).to(self.device) # 1 x 1 x K x K
         y_test = []
         for xi, wi, raw_wi in zip(f_groups, w_groups, raw_w_groups):
             '''
@@ -308,7 +309,8 @@ class Contextual_Attention_Module(nn.Module):
             '''
             # conv for compare
             wi = wi[0]
-            escape_NaN = Variable(torch.FloatTensor([1e-4])).cuda(self.device)
+            escape_NaN = Variable(torch.FloatTensor([1e-4])).to(self.device)
+
             wi_normed = wi / torch.max(l2_norm(wi), escape_NaN)
             yi = F.conv2d(xi, wi_normed, stride=1, padding=1) # yi => (B=1, C=32*32, H=32, W=32)
             y_test.append(yi)
@@ -360,9 +362,10 @@ class Contextual_Attention_Module(nn.Module):
         offsets = offsets.view([int_bs[0]] + [2] + int_bs[2:])
 
         # case1: visualize optical flow: minus current position
-        h_add = Variable(torch.arange(0,float(bs[2]))).cuda(self.device).view([1, 1, bs[2], 1])
+        h_add = Variable(torch.arange(0,float(bs[2]))).to(self.device).view([1, 1, bs[2], 1])
         h_add = h_add.expand(bs[0], 1, bs[2], bs[3])
-        w_add = Variable(torch.arange(0,float(bs[3]))).cuda(self.device).view([1, 1, 1, bs[3]])
+
+        w_add = Variable(torch.arange(0,float(bs[3]))).to(self.device).view([1, 1, 1, bs[3]])
         w_add = w_add.expand(bs[0], 1, bs[2], bs[3])
 
         offsets = offsets - torch.cat([h_add, w_add], dim=1).long()

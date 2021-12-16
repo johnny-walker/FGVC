@@ -1,8 +1,9 @@
 from .ops import *
 
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 class Generator(nn.Module):
-    def __init__(self, first_dim=32, isCheck=False, device=None):
+    def __init__(self, first_dim=32, isCheck=False, device=DEVICE):
         super(Generator, self).__init__()
         self.isCheck = isCheck
         self.device = device

@@ -184,6 +184,12 @@ def initialize_RAFT(args):
 
 
 def infer_flow(args, mode, filename, image1, image2, imgH, imgW, model, homography=False):
+    #check if flow exists
+    flo_path = os.path.join(args.outroot, 'flow', mode + '_flo', filename + '.flo')
+    if os.path.exists(flo_path):
+        flow = utils.frame_utils.readFlow(flo_path)
+        if flow is not None:
+            return flow
 
     if not homography:
         _, flow = model(image1, image2, iters=12, test_mode=True)
@@ -208,7 +214,7 @@ def infer_flow(args, mode, filename, image1, image2, imgH, imgW, model, homograp
                                fyyy.reshape(imgH, imgW, 1) - fy.reshape(imgH, imgW, 1)), axis=2)
 
     Image.fromarray(utils.flow_viz.flow_to_image(flow)).save(os.path.join(args.outroot, 'flow', mode + '_png', filename + '.png'))
-    utils.frame_utils.writeFlow(os.path.join(args.outroot, 'flow', mode + '_flo', filename + '.flo'), flow)
+    utils.frame_utils.writeFlow(flo_path, flow)
 
     return flow
 
@@ -359,6 +365,14 @@ def complete_flow(args, corrFlow, flow_mask, mode, edge=None):
 
     for i in range(nFrame):
         print("Completing {0} flow {1:2d} <---> {2:2d}".format(mode, i, i + 1), '\r', end='')
+        # check if completed flow exists
+        path = os.path.join(args.outroot, 'flow_comp', mode + '_flo', '%05d.flo'%i)
+        if os.path.exists(path):
+            flow = utils.frame_utils.readFlow(path)
+            if flow is not None:
+                compFlow[:, :, :, i] = flow
+                continue
+
         flow = corrFlow[..., i]
         if mode == 'forward':
             flow_mask_img = flow_mask[:, :, i]
@@ -414,7 +428,7 @@ def complete_flow(args, corrFlow, flow_mask, mode, edge=None):
         #
         # # Saves the flow and flow_img.
         # flow_img.save(os.path.join(args.outroot, 'flow_comp', mode + '_png', '%05d.png'%i))
-        # utils.frame_utils.writeFlow(os.path.join(args.outroot, 'flow_comp', mode + '_flo', '%05d.flo'%i), compFlow[:, :, :, i])
+        utils.frame_utils.writeFlow(os.path.join(args.outroot, 'flow_comp', mode + '_flo', '%05d.flo'%i), compFlow[:, :, :, i])
 
     return compFlow
 

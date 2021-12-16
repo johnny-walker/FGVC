@@ -6,19 +6,20 @@ import cv2
 
 from models import DeepFill
 
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 class DeepFillv1(object):
     def __init__(self,
                  pretrained_model=None,
                  image_shape=[512, 960],
                  res_shape=None,
-                 device=torch.device('cuda:0')):
+                 device=torch.device(DEVICE)):
         self.image_shape = image_shape
         self.res_shape = res_shape
         self.device = device
 
         self.deepfill = DeepFill.Generator().to(device)
-        model_weight = torch.load(pretrained_model)
+        model_weight = torch.load(pretrained_model, map_location=torch.device(DEVICE))
         self.deepfill.load_state_dict(model_weight, strict=True)
         self.deepfill.eval()
         print('Load Deepfill Model from', pretrained_model)
