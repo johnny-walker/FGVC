@@ -1,7 +1,4 @@
 result/
-data/dog/
-data/dog_mask/
-
 **/__pycache__
 *.pyc
 .DS_Store 
