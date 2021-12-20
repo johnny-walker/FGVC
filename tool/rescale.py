@@ -16,9 +16,8 @@ def main(args):
         #percent by which the image is resized
         scale_percent = 50
 
-        #calculate the 50 percent of original dimensions
-        width = int(src.shape[1] * scale_percent / 100)
-        height = int(src.shape[0] * scale_percent / 100)
+        width = int(args.W_resize)
+        height = int(args.H_resize)
 
         # dsize
         dsize = (width, height)
@@ -33,6 +32,8 @@ def main(args):
 parser = argparse.ArgumentParser()
 parser.add_argument('--path', default='../data/blackswan', help="dataset for evaluation")
 parser.add_argument('--outroot', default='../data/blackswan_scale', help="output directory")
+parser.add_argument('--H_resize', dest='H_resize', default=720, type=int, help='H sesize')
+parser.add_argument('--W_resize', dest='W_resize', default=1280,  type=int, help='W resize')
 
 args = parser.parse_args()
 main(args)
