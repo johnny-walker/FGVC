@@ -15,6 +15,7 @@ from PIL import Image
 import scipy.ndimage
 from skimage.feature import canny
 import torchvision.transforms.functional as F
+import time
 
 from RAFT import utils
 from RAFT import RAFT
@@ -786,11 +787,13 @@ def main(args):
         "Accepted modes: 'object_removal', 'video_extrapolation', but input is %s"
     ) % mode
 
+    start = time.time()
     if args.seamless:
         video_completion_seamless(args)
     else:
         video_completion(args)
 
+    print('time consuming:', time.time() - start)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
