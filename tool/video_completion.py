@@ -223,6 +223,7 @@ def infer_flow(args, mode, filename, image1, image2, imgH, imgW, model, homograp
 def calculate_flow(args, model, video):
     """Calculates optical flow.
     """
+    start = time.time()
     nFrame, _, imgH, imgW = video.shape
     FlowF = np.empty(((imgH, imgW, 2, 0)), dtype=np.float32)
     FlowB = np.empty(((imgH, imgW, 2, 0)), dtype=np.float32)
@@ -299,7 +300,8 @@ def calculate_flow(args, model, video):
                     FlowNLB2 = infer_flow(args, mode, '%05d_00002'%i, image1, image2, imgH, imgW, model, homography=False)
 
                     FlowNLB = np.concatenate((FlowNLB, np.stack((FlowNLB0, FlowNLB1, FlowNLB1), -1)[..., None]), axis=-1)
-
+    
+    print('calculate_flow(), consuming time:', time.time() - start)
     return FlowF, FlowB, FlowNLF, FlowNLB
 
 
@@ -534,6 +536,7 @@ def video_completion(args):
         FlowF_edge, FlowB_edge = None, None
 
     # Completes the flow.
+    start = time.time()
     videoFlowF = complete_flow(args, corrFlowF, flow_mask, 'forward', FlowF_edge)
     videoFlowB = complete_flow(args, corrFlowB, flow_mask, 'backward', FlowB_edge)
 
@@ -543,13 +546,14 @@ def video_completion(args):
     else:
         videoNonLocalFlowF = None
         videoNonLocalFlowB = None
-    print('\nFinish flow completion.')
+    print('\nFinish flow completion. Consuming time:', time.time() - start)
 
     iter = 0
     mask_tofill = mask
     video_comp = video
 
     # Image inpainting model.
+    start = time.time()
     deepfill = DeepFillv1(pretrained_model=args.deepfill_model, image_shape=[imgH, imgW])
 
     # We iteratively complete the video.
@@ -585,7 +589,7 @@ def video_completion(args):
         cv2.imwrite(os.path.join(args.outroot, 'frame_comp_' + 'final', '%05d.png'%i), img)
         imageio.mimwrite(os.path.join(args.outroot, 'frame_comp_' + 'final', 'final.mp4'), video_comp_, fps=12, quality=8, macro_block_size=1)
         # imageio.mimsave(os.path.join(args.outroot, 'frame_comp_' + 'final', 'final.gif'), video_comp_, format='gif', fps=12)
-
+    print('\nFinish frame completion. Consuming time:', time.time() - start)
 
 def video_completion_seamless(args):
 
@@ -670,6 +674,7 @@ def video_completion_seamless(args):
         FlowF_edge, FlowB_edge = None, None
 
     # Completes the flow.
+    start = time.time()
     videoFlowF = complete_flow(args, corrFlowF, flow_mask, 'forward', FlowF_edge)
     videoFlowB = complete_flow(args, corrFlowB, flow_mask, 'backward', FlowB_edge)
     if args.Nonlocal:
@@ -678,9 +683,10 @@ def video_completion_seamless(args):
     else:
         videoNonLocalFlowF = None
         videoNonLocalFlowB = None
-    print('\nFinish flow completion.')
+    print('\nFinish flow completion. Consuming time:', time.time() - start)
 
     # Prepare gradients
+    start = time.time()
     gradient_x = np.empty(((imgH, imgW, 3, 0)), dtype=np.float32)
     gradient_y = np.empty(((imgH, imgW, 3, 0)), dtype=np.float32)
 
@@ -704,8 +710,10 @@ def video_completion_seamless(args):
     gradient_y_filled = gradient_y # corrupted gradient_y, mask_gradient indicates the missing gradient region
     mask_gradient = mask_dilated
     video_comp = video
-
+    print('\nFinish gradient calculation. Consuming time:', time.time() - start)
+    
     # Image inpainting model.
+    start = time.time()
     deepfill = DeepFillv1(pretrained_model=args.deepfill_model, image_shape=[imgH, imgW])
 
     # We iteratively complete the video.
@@ -779,7 +787,7 @@ def video_completion_seamless(args):
         cv2.imwrite(os.path.join(args.outroot, 'frame_seamless_comp_' + 'final', '%05d.png'%i), img)
         imageio.mimwrite(os.path.join(args.outroot, 'frame_seamless_comp_' + 'final', 'final.mp4'), video_comp_, fps=12, quality=8, macro_block_size=1)
         # imageio.mimsave(os.path.join(args.outroot, 'frame_seamless_comp_' + 'final', 'final.gif'), video_comp_, format='gif', fps=12)
-
+    print('\nFinish frame completion. Consuming time:', time.time() - start)
 
 def main(args):
 
@@ -793,7 +801,7 @@ def main(args):
     else:
         video_completion(args)
 
-    print('time consuming:', time.time() - start)
+    print('total consuming time:', time.time() - start)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
