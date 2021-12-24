@@ -301,7 +301,7 @@ def calculate_flow(args, model, video):
 
                     FlowNLB = np.concatenate((FlowNLB, np.stack((FlowNLB0, FlowNLB1, FlowNLB1), -1)[..., None]), axis=-1)
     
-    print('calculate_flow(), consuming time:', time.time() - start)
+    print('Finish flow calculation. Consuming time:', time.time() - start)
     return FlowF, FlowB, FlowNLF, FlowNLB
 
 
@@ -711,7 +711,7 @@ def video_completion_seamless(args):
     mask_gradient = mask_dilated
     video_comp = video
     print('\nFinish gradient calculation. Consuming time:', time.time() - start)
-    
+
     # Image inpainting model.
     start = time.time()
     deepfill = DeepFillv1(pretrained_model=args.deepfill_model, image_shape=[imgH, imgW])
