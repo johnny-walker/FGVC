@@ -1,4 +1,5 @@
 ================================================================
+Under Linux (after ssh) : Ubuntu 20.04.2 LTS"  Focal Fossa
 Domain: ces-kbl03-ubuntu
 Account: ces-testing
 Password: ces12345
@@ -15,31 +16,31 @@ Login with 訪客
 (3) monitor GPU status (Nvidia System management interface)
 nvidia-smi
 
+(4) check OS version
+cat /etc/os-release
+
 ================================================================
- Under Linux (after ssh) : Ubuntu 20.04.2 LTS"  Focal Fossa
+ Conda commands
 ================================================================
 (0) check conda information
 conda info
 
-(1) check OS version
-cat /etc/os-release
-
 (2) check conda env
 conda env list
 
-
-(1) create a new env 
+(2) create a new env 
 conda create --name FGVC
 
-(2) activate env
+(3) activate env
 conda activate FGVC
 
-
 ================================================================
-# install detectron2 from a local clone:
-Once upon a time I stumbled with this issue. If you're using macOS go to Macintosh HD > Applications > Python3.6 folder (or whatever version of python you're using) > double click on "Install Certificates.command"
+# install detectron2 from a local clone: 
+fix SSL: CERTIFICATE_VERIFY_FAILED issue:  
+Macintosh HD > Applications > Python3.x folder
+>>> double click on "Install Certificates.command"
+(maskrcnn is slow)
 ================================================================
-
 git clone https://github.com/facebookresearch/detectron2.git
 python -m pip install -e detectron2
 
@@ -47,8 +48,6 @@ python -m pip install -e detectron2
 ================================================================
 Run script:
 ================================================================
-
-
 python video_completion.py --mode object_removal --path ../data/beach --path_mask ../data/beach_mask --outroot ../result/beach --seamless
 
 Beach (155 frames)
