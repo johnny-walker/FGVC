@@ -25,6 +25,7 @@ def preprocess(args):
     cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5  # set threshold for this model
     # Find a model from detectron2's model zoo. You can use the https://dl.fbaipublicfiles... url as well
     cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml")
+    cfg.MODEL.DEVICE = 'cpu'
     predictor = DefaultPredictor(cfg)
     number_of_frames = len(images)
 
@@ -55,9 +56,8 @@ def preprocess(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Preprocess image sequence')
-    parser.add_argument(
-        '--vid-path', type=Path, default=Path('./data/'), help='folder to process')
-    parser.add_argument('--class_name', type=str, default='person',
+    parser.add_argument('--vid_path', type=Path, default=Path('./data/'), help='folder to process')
+    parser.add_argument('--class_name', type=str, default='anything',
                         help='The foreground object class')
     args = parser.parse_args()
     preprocess(args=args)

@@ -4,8 +4,9 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+        ///* FGVC
         {
-            "name": "Python: video_completion",
+            "name": "Python: FGVC",
             "type": "python",
             "request": "launch",
             //"program": "tool/video_completion.py",
@@ -19,5 +20,17 @@
                       "--deepfill_model", "weight/imagenet_deepfill.pth",
                ],
         }
+        //*/
+        /* MaskRCNN
+        {
+            "name": "Python: MaskRCNN",
+            "type": "python",
+            "request": "launch",
+            "program": "tool/preprocess_mask_rcnn.py",
+            "console": "integratedTerminal",
+            "args" : ["--vid_path", "data/beach/", 
+               ],            
+        }
+        */
     ]
 }
