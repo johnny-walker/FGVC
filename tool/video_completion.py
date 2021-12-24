@@ -214,8 +214,8 @@ def infer_flow(args, mode, filename, image1, image2, imgH, imgW, model, homograp
         flow = np.concatenate((fxxx.reshape(imgH, imgW, 1) - fx.reshape(imgH, imgW, 1),
                                fyyy.reshape(imgH, imgW, 1) - fy.reshape(imgH, imgW, 1)), axis=2)
 
-    Image.fromarray(utils.flow_viz.flow_to_image(flow)).save(os.path.join(args.outroot, 'flow', mode + '_png', filename + '.png'))
-    utils.frame_utils.writeFlow(flo_path, flow)
+    #Image.fromarray(utils.flow_viz.flow_to_image(flow)).save(os.path.join(args.outroot, 'flow', mode + '_png', filename + '.png'))
+    #utils.frame_utils.writeFlow(flo_path, flow)
 
     return flow
 
@@ -485,6 +485,7 @@ def video_completion(args):
     corrFlowF, corrFlowB, corrFlowNLF, corrFlowNLB = calculate_flow(args, RAFT_model, video)
     print('\nFinish flow prediction.')
 
+    start = time.time()
     # Makes sure video is in BGR (opencv) format.
     video = video.permute(2, 3, 1, 0).cpu().numpy()[:, :, ::-1, :] / 255.
 
@@ -497,7 +498,7 @@ def video_completion(args):
         # mask indicating the missing region in the video.
         mask = np.tile(flow_mask[..., None], (1, 1, nFrame))
         flow_mask = np.tile(flow_mask[..., None], (1, 1, nFrame))
-
+        print('\n Finish extrapolation. Consuming time:', time.time() - start) 
     else:
         # Loads masks.
         filename_list = glob.glob(os.path.join(args.path_mask, '*.png')) + \
@@ -519,7 +520,9 @@ def video_completion(args):
         # mask indicating the missing region in the video.
         mask = np.stack(mask, -1).astype(bool)
         flow_mask = np.stack(flow_mask, -1).astype(bool)
+        print('\n Finish filling mask holes. Consuming time:', time.time() - start)  
 
+    start = time.time()
     if args.edge_guide:
         # Edge completion model.
         EdgeGenerator = EdgeGenerator_()
@@ -531,7 +534,8 @@ def video_completion(args):
         # Edge completion.
         FlowF_edge = edge_completion(args, EdgeGenerator, corrFlowF, flow_mask, 'forward')
         FlowB_edge = edge_completion(args, EdgeGenerator, corrFlowB, flow_mask, 'backward')
-        print('\nFinish edge completion.')
+        print('\nFinish edge completion. Consuming time:', time.time() - start)
+        start = time.time()
     else:
         FlowF_edge, FlowB_edge = None, None
 
