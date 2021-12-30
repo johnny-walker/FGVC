@@ -193,8 +193,8 @@ def infer_flow(args, mode, filename, image1, image2, imgH, imgW, model, homograp
             return flow
 
     if not homography:
-        iteration = 6   # test code, original = 12
-        _, flow = model(image1, image2, iters=iteration, test_mode=True)
+        # original uters = 12
+        _, flow = model(image1, image2, iters=int(args.iteration), test_mode=True)
         flow = flow[0].permute(1, 2, 0).cpu().numpy()
     else:
         image2_reg, H_BA = homograpy(image1, image2)
@@ -679,16 +679,17 @@ def video_completion_seamless(args):
         FlowF_edge, FlowB_edge = None, None
 
     # Completes the flow.
-    start = time.time()
-    videoFlowF = complete_flow(args, corrFlowF, flow_mask, 'forward', FlowF_edge)
-    videoFlowB = complete_flow(args, corrFlowB, flow_mask, 'backward', FlowB_edge)
-    if args.Nonlocal:
-        videoNonLocalFlowF = complete_flow(args, corrFlowNLF, flow_mask, 'nonlocal_forward', None)
-        videoNonLocalFlowB = complete_flow(args, corrFlowNLB, flow_mask, 'nonlocal_backward', None)
-    else:
-        videoNonLocalFlowF = None
-        videoNonLocalFlowB = None
-    print('\nFinish flow completion. Consuming time:', time.time() - start)
+    if args.completeFlow:
+        start = time.time()
+        videoFlowF = complete_flow(args, corrFlowF, flow_mask, 'forward', FlowF_edge)
+        videoFlowB = complete_flow(args, corrFlowB, flow_mask, 'backward', FlowB_edge)
+        if args.Nonlocal:
+            videoNonLocalFlowF = complete_flow(args, corrFlowNLF, flow_mask, 'nonlocal_forward', None)
+            videoNonLocalFlowB = complete_flow(args, corrFlowNLB, flow_mask, 'nonlocal_backward', None)
+        else:
+            videoNonLocalFlowF = None
+            videoNonLocalFlowB = None
+        print('\nFinish flow completion. Consuming time:', time.time() - start)
 
     # Prepare gradients
     start = time.time()
@@ -797,8 +798,7 @@ def video_completion_seamless(args):
 def main(args):
 
     assert args.mode in ('object_removal', 'video_extrapolation'), (
-        "Accepted modes: 'object_removal', 'video_extrapolation', but input is %s"
-    ) % mode
+        "Accepted modes: 'object_removal', 'video_extrapolation', but input is %s"  ) % mode
 
     start = time.time()
     if args.seamless:
@@ -824,6 +824,7 @@ if __name__ == '__main__':
 
     # RAFT
     parser.add_argument('--model', default='../weight/raft-things.pth', help="restore checkpoint")
+    parser.add_argument('--iteration', default=12, help="iteration")
     parser.add_argument('--small', action='store_true', help='use small model')
     parser.add_argument('--mixed_precision', action='store_true', help='use mixed precision')
     parser.add_argument('--alternate_corr', action='store_true', help='use efficent correlation implementation')
@@ -837,6 +838,11 @@ if __name__ == '__main__':
     # extrapolation
     parser.add_argument('--H_scale', dest='H_scale', default=2, type=float, help='H extrapolation scale')
     parser.add_argument('--W_scale', dest='W_scale', default=2, type=float, help='W extrapolation scale')
+
+    # extra args
+    parser.add_argument('--completeFlow', action='store_true', help='complete flow')
+
+    
 
     args = parser.parse_args()
 
