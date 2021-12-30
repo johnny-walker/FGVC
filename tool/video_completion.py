@@ -553,6 +553,9 @@ def video_completion(args):
             videoNonLocalFlowF = None
             videoNonLocalFlowB = None
         print('\nFinish flow completion. Consuming time:', time.time() - start)
+    else:
+        videoFlowF = corrFlowF
+        videoFlowB = corrFlowB
 
     iter = 0
     mask_tofill = mask
@@ -694,6 +697,9 @@ def video_completion_seamless(args):
             videoNonLocalFlowF = None
             videoNonLocalFlowB = None
         print('\nFinish flow completion. Consuming time:', time.time() - start)
+    else:
+        videoFlowF = corrFlowF
+        videoFlowB = corrFlowB
 
     # Prepare gradients
     start = time.time()
