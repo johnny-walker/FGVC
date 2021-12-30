@@ -193,7 +193,8 @@ def infer_flow(args, mode, filename, image1, image2, imgH, imgW, model, homograp
             return flow
 
     if not homography:
-        _, flow = model(image1, image2, iters=12, test_mode=True)
+        iteration = 6   # test code, original = 12
+        _, flow = model(image1, image2, iters=iteration, test_mode=True)
         flow = flow[0].permute(1, 2, 0).cpu().numpy()
     else:
         image2_reg, H_BA = homograpy(image1, image2)
