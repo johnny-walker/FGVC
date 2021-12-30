@@ -541,6 +541,10 @@ def video_completion(args):
         FlowF_edge, FlowB_edge = None, None
 
     # Completes the flow.
+    videoFlowF = corrFlowF
+    videoFlowB = corrFlowB
+    videoNonLocalFlowF = None
+    videoNonLocalFlowB = None
     if args.completeFlow:
         start = time.time()
         videoFlowF = complete_flow(args, corrFlowF, flow_mask, 'forward', FlowF_edge)
@@ -549,13 +553,7 @@ def video_completion(args):
         if args.Nonlocal:
             videoNonLocalFlowF = complete_flow(args, corrFlowNLF, flow_mask, 'nonlocal_forward', None)
             videoNonLocalFlowB = complete_flow(args, corrFlowNLB, flow_mask, 'nonlocal_backward', None)
-        else:
-            videoNonLocalFlowF = None
-            videoNonLocalFlowB = None
         print('\nFinish flow completion. Consuming time:', time.time() - start)
-    else:
-        videoFlowF = corrFlowF
-        videoFlowB = corrFlowB
 
     iter = 0
     mask_tofill = mask
@@ -686,6 +684,10 @@ def video_completion_seamless(args):
         FlowF_edge, FlowB_edge = None, None
 
     # Completes the flow.
+    videoFlowF = corrFlowF
+    videoFlowB = corrFlowB
+    videoNonLocalFlowF = None
+    videoNonLocalFlowB = None
     if args.completeFlow:
         start = time.time()
         videoFlowF = complete_flow(args, corrFlowF, flow_mask, 'forward', FlowF_edge)
@@ -693,13 +695,8 @@ def video_completion_seamless(args):
         if args.Nonlocal:
             videoNonLocalFlowF = complete_flow(args, corrFlowNLF, flow_mask, 'nonlocal_forward', None)
             videoNonLocalFlowB = complete_flow(args, corrFlowNLB, flow_mask, 'nonlocal_backward', None)
-        else:
-            videoNonLocalFlowF = None
-            videoNonLocalFlowB = None
         print('\nFinish flow completion. Consuming time:', time.time() - start)
-    else:
-        videoFlowF = corrFlowF
-        videoFlowB = corrFlowB
+
 
     # Prepare gradients
     start = time.time()
