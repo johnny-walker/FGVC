@@ -14,3 +14,13 @@ def spatial_inpaint(deepfill, mask, video_comp):
     mask[:, :, keyFrameInd] = False
 
     return mask, video_comp
+
+# fill all frames
+def spatial_inpaint_all(deepfill, mask, video_comp):
+    with torch.no_grad():
+        for index in range(len(video_comp)-1):
+            img_res = deepfill.forward(video_comp[:, :, :, index] * 255., mask[:, :, index]) / 255.
+            video_comp[mask[:, :, index], :, index] = img_res[mask[:, :, index], :]
+            mask[:, :, index] = False
+
+    return mask, video_comp

@@ -26,7 +26,7 @@ from utils.Poisson_blend_img import Poisson_blend_img
 from get_flowNN import get_flowNN
 from get_flowNN_gradient import get_flowNN_gradient
 from utils.common_utils import flow_edge
-from spatial_inpaint import spatial_inpaint
+from spatial_inpaint import spatial_inpaint, spatial_inpaint_all
 from frame_inpaint import DeepFillv1
 from edgeconnect.networks import EdgeGenerator_
 
@@ -541,17 +541,18 @@ def video_completion(args):
         FlowF_edge, FlowB_edge = None, None
 
     # Completes the flow.
-    start = time.time()
-    videoFlowF = complete_flow(args, corrFlowF, flow_mask, 'forward', FlowF_edge)
-    videoFlowB = complete_flow(args, corrFlowB, flow_mask, 'backward', FlowB_edge)
+    if args.completeFlow:
+        start = time.time()
+        videoFlowF = complete_flow(args, corrFlowF, flow_mask, 'forward', FlowF_edge)
+        videoFlowB = complete_flow(args, corrFlowB, flow_mask, 'backward', FlowB_edge)
 
-    if args.Nonlocal:
-        videoNonLocalFlowF = complete_flow(args, corrFlowNLF, flow_mask, 'nonlocal_forward', None)
-        videoNonLocalFlowB = complete_flow(args, corrFlowNLB, flow_mask, 'nonlocal_backward', None)
-    else:
-        videoNonLocalFlowF = None
-        videoNonLocalFlowB = None
-    print('\nFinish flow completion. Consuming time:', time.time() - start)
+        if args.Nonlocal:
+            videoNonLocalFlowF = complete_flow(args, corrFlowNLF, flow_mask, 'nonlocal_forward', None)
+            videoNonLocalFlowB = complete_flow(args, corrFlowNLB, flow_mask, 'nonlocal_backward', None)
+        else:
+            videoNonLocalFlowF = None
+            videoNonLocalFlowB = None
+        print('\nFinish flow completion. Consuming time:', time.time() - start)
 
     iter = 0
     mask_tofill = mask
@@ -584,7 +585,10 @@ def video_completion(args):
         # video_comp_ = (video_comp * 255).astype(np.uint8).transpose(3, 0, 1, 2)[:, :, :, ::-1]
         # imageio.mimwrite(os.path.join(args.outroot, 'frame_comp_' + str(iter), 'intermediate_{0}.mp4'.format(str(iter))), video_comp_, fps=12, quality=8, macro_block_size=1)
         # imageio.mimsave(os.path.join(args.outroot, 'frame_comp_' + str(iter), 'intermediate_{0}.gif'.format(str(iter))), video_comp_, format='gif', fps=12)
-        mask_tofill, video_comp = spatial_inpaint(deepfill, mask_tofill, video_comp)
+        if args.inpaintAll:
+           mask_tofill, video_comp = spatial_inpaint_all(deepfill, mask_tofill, video_comp)
+        else:
+            mask_tofill, video_comp = spatial_inpaint(deepfill, mask_tofill, video_comp)
         iter += 1
 
     create_dir(os.path.join(args.outroot, 'frame_comp_' + 'final'))
@@ -824,7 +828,6 @@ if __name__ == '__main__':
 
     # RAFT
     parser.add_argument('--model', default='../weight/raft-things.pth', help="restore checkpoint")
-    parser.add_argument('--iteration', default=12, help="iteration")
     parser.add_argument('--small', action='store_true', help='use small model')
     parser.add_argument('--mixed_precision', action='store_true', help='use mixed precision')
     parser.add_argument('--alternate_corr', action='store_true', help='use efficent correlation implementation')
@@ -840,8 +843,9 @@ if __name__ == '__main__':
     parser.add_argument('--W_scale', dest='W_scale', default=2, type=float, help='W extrapolation scale')
 
     # extra args
+    parser.add_argument('--iteration', default=12, help="RAFT iteration")
     parser.add_argument('--completeFlow', action='store_true', help='complete flow')
-
+    parser.add_argument('--inpaintAll', action='store_true', help='inpaint all frames, only do one flow reference ')
     
 
     args = parser.parse_args()

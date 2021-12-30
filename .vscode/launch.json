@@ -18,7 +18,8 @@
                       "--outroot", "result/beach",
                       "--model", "weight/raft-things.pth",
                       "--deepfill_model", "weight/imagenet_deepfill.pth",
-                      "--iteration", "6",
+                      "--iteration", "2",
+                      "--inpaintAll",
                ],
         }
         //*/
