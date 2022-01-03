@@ -26,7 +26,7 @@ from utils.Poisson_blend_img import Poisson_blend_img
 from get_flowNN import get_flowNN
 from get_flowNN_gradient import get_flowNN_gradient
 from utils.common_utils import flow_edge
-from spatial_inpaint import spatial_inpaint, spatial_inpaint_all
+from spatial_inpaint import spatial_inpaint
 from frame_inpaint import DeepFillv1
 from edgeconnect.networks import EdgeGenerator_
 
@@ -563,7 +563,9 @@ def video_completion(args):
 
     # We iteratively complete the video.
     while(np.sum(mask_tofill) > 0):
-        create_dir(os.path.join(args.outroot, 'frame_comp_' + str(iter)))
+        directory = os.path.join(args.outroot, 'frame_comp_' + str(iter))
+        print(directory)
+        create_dir(directory)
 
         # Color propagation.
         video_comp, mask_tofill, _ = get_flowNN(args,
@@ -579,24 +581,24 @@ def video_completion(args):
             img = video_comp[:, :, :, i] * 255
             # Green indicates the regions that are not filled yet.
             img[mask_tofill[:, :, i]] = [0, 255, 0]
-            cv2.imwrite(os.path.join(args.outroot, 'frame_comp_' + str(iter), '%05d.png'%i), img)
+            cv2.imwrite(os.path.join(directory, '%05d.png'%i), img)
 
         # video_comp_ = (video_comp * 255).astype(np.uint8).transpose(3, 0, 1, 2)[:, :, :, ::-1]
-        # imageio.mimwrite(os.path.join(args.outroot, 'frame_comp_' + str(iter), 'intermediate_{0}.mp4'.format(str(iter))), video_comp_, fps=12, quality=8, macro_block_size=1)
-        # imageio.mimsave(os.path.join(args.outroot, 'frame_comp_' + str(iter), 'intermediate_{0}.gif'.format(str(iter))), video_comp_, format='gif', fps=12)
-        if args.inpaintAll:
-           mask_tofill, video_comp = spatial_inpaint_all(deepfill, mask_tofill, video_comp)
-        else:
-            mask_tofill, video_comp = spatial_inpaint(deepfill, mask_tofill, video_comp)
+        # imageio.mimwrite(os.path.join(directory, 'intermediate_{0}.mp4'.format(str(iter))), video_comp_, fps=12, quality=8, macro_block_size=1)
+        # imageio.mimsave(os.path.join(directory, 'intermediate_{0}.gif'.format(str(iter))), video_comp_, format='gif', fps=12)
+        mask_tofill, video_comp = spatial_inpaint(deepfill, mask_tofill, video_comp)
         iter += 1
 
-    create_dir(os.path.join(args.outroot, 'frame_comp_' + 'final'))
+    directory = os.path.join(args.outroot, 'frame_comp_' + 'final')
+    print(directory)
+    create_dir(directory)
     video_comp_ = (video_comp * 255).astype(np.uint8).transpose(3, 0, 1, 2)[:, :, :, ::-1]
     for i in range(nFrame):
         img = video_comp[:, :, :, i] * 255
         cv2.imwrite(os.path.join(args.outroot, 'frame_comp_' + 'final', '%05d.png'%i), img)
-        imageio.mimwrite(os.path.join(args.outroot, 'frame_comp_' + 'final', 'final.mp4'), video_comp_, fps=12, quality=8, macro_block_size=1)
-        # imageio.mimsave(os.path.join(args.outroot, 'frame_comp_' + 'final', 'final.gif'), video_comp_, format='gif', fps=12)
+        imageio.mimwrite(os.path.join(directory, 'final.mp4'), video_comp_, fps=12, quality=8, macro_block_size=1)
+        # imageio.mimsave(os.path.join(directory, 'final.gif'), video_comp_, format='gif', fps=12)
+        print("saving mp4: {0} ".format(i), '\r', end='')
     print('\nFinish frame completion. Consuming time:', time.time() - start)
 
 def video_completion_seamless(args):
@@ -844,8 +846,6 @@ if __name__ == '__main__':
 
     # extra args
     parser.add_argument('--iteration', default=12, help="RAFT iteration")
-    parser.add_argument('--inpaintAll', action='store_true', help='inpaint all frames, only do one flow reference ')
-    
 
     args = parser.parse_args()
 
