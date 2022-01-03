@@ -14,13 +14,13 @@ def spatial_inpaint(deepfill, mask, video_comp, nframe=1):
             img_res = deepfill.forward(video_comp[:, :, :, keyFrameInd] * 255., mask[:, :, keyFrameInd]) / 255.
         video_comp[mask[:, :, keyFrameInd], :, keyFrameInd] = img_res[mask[:, :, keyFrameInd], :]
         mask[:, :, keyFrameInd] = False
-        print('frame inpainting completed, consuming time:', time.time() - start)
+        print('frame {} inpainting completed, consuming time: {}'.format(keyFrameInd, time.time() - start))
     else:
         for indFrame in range(nframe):
             with torch.no_grad():
                 if np.sum(mask[:, :, indFrame]) > 0:
                     img_res = deepfill.forward(video_comp[:, :, :, indFrame] * 255., mask[:, :, indFrame]) / 255.
-                    print('frame inpainting completed, consuming time:', time.time() - start, '\r', end='')     
+                    print('frame {} inpainting completed, consuming time: {}'.format(indFrame, time.time() - start), '\r', end='')     
             video_comp[mask[:, :, indFrame], :, indFrame] = img_res[mask[:, :, indFrame], :]
             mask[:, :, indFrame] = False
     return mask, video_comp

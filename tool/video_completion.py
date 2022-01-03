@@ -462,7 +462,7 @@ def edge_completion(args, EdgeGenerator, corrFlow, flow_mask, mode):
 
 
 def video_completion(args):
-
+    begin = time.time()
     # Flow model.
     RAFT_model = initialize_RAFT(args)
 
@@ -558,11 +558,11 @@ def video_completion(args):
     video_comp = video
 
     # Image inpainting model.
-    start = time.time()
     deepfill = DeepFillv1(pretrained_model=args.deepfill_model, image_shape=[imgH, imgW])
 
     # We iteratively complete the video.
     while(np.sum(mask_tofill) > 0):
+        start = time.time()
         print('iteration:', iter)
         create_dir(os.path.join(args.outroot, 'frame_comp_' + str(iter)))
 
@@ -575,6 +575,7 @@ def video_completion(args):
                                       videoNonLocalFlowF,
                                       videoNonLocalFlowB)
 
+        print('\nFinish color propagation. Consuming time:', time.time() - start)
         for i in range(nFrame):
             mask_tofill[:, :, i] = scipy.ndimage.binary_dilation(mask_tofill[:, :, i], iterations=2)
             img = video_comp[:, :, :, i] * 255
@@ -586,15 +587,18 @@ def video_completion(args):
         # imageio.mimwrite(os.path.join(args.outroot, 'frame_comp_' + str(iter), 'intermediate_{0}.mp4'.format(str(iter))), video_comp_, fps=12, quality=8, macro_block_size=1)
         # imageio.mimsave(os.path.join(args.outroot, 'frame_comp_' + str(iter), 'intermediate_{0}.gif'.format(str(iter))), video_comp_, format='gif', fps=12)
  
+        start = time.time()
         if args.inpainting:
             mask_tofill, video_comp = spatial_inpaint(deepfill, mask_tofill, video_comp, nFrame)
+            print('\nFinish frame inpainting. Consuming time:', time.time() - start)
             break
         else:
             mask_tofill, video_comp = spatial_inpaint(deepfill, mask_tofill, video_comp)
             iter += 1
+            print('\nFinish frame inpainting. Consuming time:', time.time() - start)
 
-    print('\nFinish frame completion. Consuming time:', time.time() - start)
-
+    print('Total consuming time:', time.time() - begin)    
+    # save mp4
     create_dir(os.path.join(args.outroot, 'frame_comp_' + 'final'))
     video_comp_ = (video_comp * 255).astype(np.uint8).transpose(3, 0, 1, 2)[:, :, :, ::-1]
     for i in range(nFrame):
@@ -810,13 +814,10 @@ def main(args):
     assert args.mode in ('object_removal', 'video_extrapolation'), (
         "Accepted modes: 'object_removal', 'video_extrapolation', but input is %s"  ) % mode
 
-    start = time.time()
     if args.seamless:
         video_completion_seamless(args)
     else:
         video_completion(args)
-
-    print('total consuming time:', time.time() - start)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
