@@ -580,15 +580,18 @@ def video_completion(args):
             img = video_comp[:, :, :, i] * 255
             # Green indicates the regions that are not filled yet.
             img[mask_tofill[:, :, i]] = [0, 255, 0]
-            #cv2.imwrite(os.path.join(args.outroot, 'frame_comp_' + str(iter), '%05d.png'%i), img)
+            cv2.imwrite(os.path.join(args.outroot, 'frame_comp_' + str(iter), '%05d.png'%i), img)
 
         # video_comp_ = (video_comp * 255).astype(np.uint8).transpose(3, 0, 1, 2)[:, :, :, ::-1]
         # imageio.mimwrite(os.path.join(args.outroot, 'frame_comp_' + str(iter), 'intermediate_{0}.mp4'.format(str(iter))), video_comp_, fps=12, quality=8, macro_block_size=1)
         # imageio.mimsave(os.path.join(args.outroot, 'frame_comp_' + str(iter), 'intermediate_{0}.gif'.format(str(iter))), video_comp_, format='gif', fps=12)
  
-        #mask_tofill, video_comp = spatial_inpaint(deepfill, mask_tofill, video_comp)
-        mask_tofill, video_comp = spatial_inpaint(deepfill, mask_tofill, video_comp, nFrame)
-        iter += 1
+        if args.inpainting:
+            mask_tofill, video_comp = spatial_inpaint(deepfill, mask_tofill, video_comp, nFrame)
+            break
+        else:
+            mask_tofill, video_comp = spatial_inpaint(deepfill, mask_tofill, video_comp)
+            iter += 1
 
     print('\nFinish frame completion. Consuming time:', time.time() - start)
 
@@ -847,6 +850,7 @@ if __name__ == '__main__':
 
     # extra args
     parser.add_argument('--iteration', default=12, help="RAFT iteration")
+    parser.add_argument('--inpainting', action='store_true', help='all the remaining unknown pixels apply inpainting')
 
     args = parser.parse_args()
 

@@ -69,3 +69,4 @@ Tennis (70 frames) - mask is not small
 Finish flow calculation. Consuming time: 17.802692651748657
 Finish filling mask holes. Consuming time: 2.0737087726593018
 Finish flow completion. Consuming time: 79.1164653301239
+Finish frame completion. Consuming time: 57.00275707244873
