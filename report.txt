@@ -50,13 +50,6 @@ Run script:
 ================================================================
 python video_completion.py --mode object_removal --path ../data/beach --path_mask ../data/beach_mask --outroot ../result/beach --seamless
 
-Beach (155 frames) - mask area is small
-GeForce GTX 1080
-Finish flow calculation. Consuming time: 198.27179145812988
-Finish flow completion. Consuming time: 70.23696565628052
-Finish frame completion. Consuming time: 336.8386232852936
-total consuming time: 617.5839836597443
-
 Cheetah (107 frames) - mask area is big
 GeForce GTX 1080
 Finish flow calculation. Consuming time: 127.4153459072113
@@ -71,3 +64,8 @@ Finish flow completion. Consuming time: 19.77345371246338
 (frame inpainting completed, consuming time: 2.28780460357666)
 Finish frame completion. Consuming time: 21.283280611038208
 total consuming time: 112.37362003326416
+
+Tennis (70 frames) - mask is not small
+Finish flow calculation. Consuming time: 17.802692651748657
+Finish filling mask holes. Consuming time: 2.0737087726593018
+Finish flow completion. Consuming time: 79.1164653301239
