@@ -588,6 +588,7 @@ def video_completion(args):
         # imageio.mimsave(os.path.join(directory, 'intermediate_{0}.gif'.format(str(iter))), video_comp_, format='gif', fps=12)
         mask_tofill, video_comp = spatial_inpaint(deepfill, mask_tofill, video_comp)
         iter += 1
+    print('\nFinish frame completion. Consuming time:', time.time() - start)
 
     directory = os.path.join(args.outroot, 'frame_comp_' + 'final')
     print(directory)
@@ -599,7 +600,7 @@ def video_completion(args):
         imageio.mimwrite(os.path.join(directory, 'final.mp4'), video_comp_, fps=12, quality=8, macro_block_size=1)
         # imageio.mimsave(os.path.join(directory, 'final.gif'), video_comp_, format='gif', fps=12)
         print("saving mp4: {0} ".format(i), '\r', end='')
-    print('\nFinish frame completion. Consuming time:', time.time() - start)
+
 
 def video_completion_seamless(args):
 
