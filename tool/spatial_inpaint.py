@@ -24,5 +24,5 @@ def spatial_inpaint_all(deepfill, mask, video_comp):
             img_res = deepfill.forward(video_comp[:, :, :, index] * 255., mask[:, :, index]) / 255.
             video_comp[mask[:, :, index], :, index] = img_res[mask[:, :, index], :]
             mask[:, :, index] = False
-            print('frame inpainting completed, consuming time:', index, time.time - start)
+            print('frame {} inpainting completed, consuming time: {}'.format(index, time.time - start))
     return mask, video_comp
