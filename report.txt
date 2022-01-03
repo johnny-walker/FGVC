@@ -63,3 +63,11 @@ Finish flow calculation. Consuming time: 127.4153459072113
 Finish flow completion. Consuming time: 395.17946910858154
 Finish frame completion. Consuming time: 777.1359350681305
 total consuming time: 1308.3219661712646
+
+Beach (55 frames) - mask area is small
+Finish flow calculation. Consuming time: 25.865521907806396
+Finish filling mask holes. Consuming time: 2.773974895477295
+Finish flow completion. Consuming time: 19.77345371246338
+(frame inpainting completed, consuming time: 2.28780460357666)
+Finish frame completion. Consuming time: 21.283280611038208
+total consuming time: 112.37362003326416
