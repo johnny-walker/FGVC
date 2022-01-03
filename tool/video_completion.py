@@ -590,12 +590,10 @@ def video_completion(args):
         start = time.time()
         if args.inpainting:
             mask_tofill, video_comp = spatial_inpaint(deepfill, mask_tofill, video_comp, nFrame)
-            print('\nFinish frame inpainting. Consuming time:', time.time() - start)
             break
         else:
             mask_tofill, video_comp = spatial_inpaint(deepfill, mask_tofill, video_comp)
             iter += 1
-            print('\nFinish frame inpainting. Consuming time:', time.time() - start)
 
     print('Total consuming time:', time.time() - begin)    
     # save mp4

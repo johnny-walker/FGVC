@@ -367,11 +367,12 @@ def get_flowNN(args,
     videoBN = copy.deepcopy(video)
     videoFN = copy.deepcopy(video)
 
+    print('copy from backward flow neighbor......')
     for indFrame in range(nFrame):
         # Index of missing pixel whose backward flow neighbor is from frame indFrame
         SourceFmInd = np.where(flowNN[:, 2, 0] == indFrame)
 
-        print("{0:8d} pixels are from source Frame {1:3d}".format(len(SourceFmInd[0]), indFrame), '\r', end='')
+        #print("{0:8d} pixels are from source Frame {1:3d}".format(len(SourceFmInd[0]), indFrame))
 
         # The location of the missing pixel whose backward flow neighbor is
         # from frame indFrame flowNN[SourceFmInd, 0, 0], flowNN[SourceFmInd, 1, 0]
@@ -396,10 +397,11 @@ def get_flowNN(args,
 
             assert(((sub[SourceFmInd[0], :][:, 2] - indFrame) <= 0).sum() == 0)
 
+    print('copy from forward flow neighbor......')
     for indFrame in range(nFrame - 1, -1, -1):
         # Index of missing pixel whose forward flow neighbor is from frame indFrame
         SourceFmInd = np.where(flowNN[:, 2, 1] == indFrame)
-        print("{0:8d} pixels are from source Frame {1:3d}".format(len(SourceFmInd[0]), indFrame), '\r', end='')
+        #print("{0:8d} pixels are from source Frame {1:3d}".format(len(SourceFmInd[0]), indFrame))
         if len(SourceFmInd[0]) != 0:
 
             videoFN[sub[SourceFmInd[0], :][:, 0],
