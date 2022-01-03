@@ -523,8 +523,8 @@ def video_completion(args):
         flow_mask = np.stack(flow_mask, -1).astype(bool)
         print('\n Finish filling mask holes. Consuming time:', time.time() - start)  
 
-    start = time.time()
     if args.edge_guide:
+        start = time.time()
         # Edge completion model.
         EdgeGenerator = EdgeGenerator_()
         EdgeComp_ckpt = torch.load(args.edge_completion_model)
@@ -536,7 +536,6 @@ def video_completion(args):
         FlowF_edge = edge_completion(args, EdgeGenerator, corrFlowF, flow_mask, 'forward')
         FlowB_edge = edge_completion(args, EdgeGenerator, corrFlowB, flow_mask, 'backward')
         print('\nFinish edge completion. Consuming time:', time.time() - start)
-        start = time.time()
     else:
         FlowF_edge, FlowB_edge = None, None
 
@@ -545,15 +544,14 @@ def video_completion(args):
     videoFlowB = corrFlowB
     videoNonLocalFlowF = None
     videoNonLocalFlowB = None
-    if args.completeFlow:
-        start = time.time()
-        videoFlowF = complete_flow(args, corrFlowF, flow_mask, 'forward', FlowF_edge)
-        videoFlowB = complete_flow(args, corrFlowB, flow_mask, 'backward', FlowB_edge)
+    start = time.time()
+    videoFlowF = complete_flow(args, corrFlowF, flow_mask, 'forward', FlowF_edge)
+    videoFlowB = complete_flow(args, corrFlowB, flow_mask, 'backward', FlowB_edge)
 
-        if args.Nonlocal:
-            videoNonLocalFlowF = complete_flow(args, corrFlowNLF, flow_mask, 'nonlocal_forward', None)
-            videoNonLocalFlowB = complete_flow(args, corrFlowNLB, flow_mask, 'nonlocal_backward', None)
-        print('\nFinish flow completion. Consuming time:', time.time() - start)
+    if args.Nonlocal:
+        videoNonLocalFlowF = complete_flow(args, corrFlowNLF, flow_mask, 'nonlocal_forward', None)
+        videoNonLocalFlowB = complete_flow(args, corrFlowNLB, flow_mask, 'nonlocal_backward', None)
+    print('\nFinish flow completion. Consuming time:', time.time() - start)
 
     iter = 0
     mask_tofill = mask
@@ -688,14 +686,13 @@ def video_completion_seamless(args):
     videoFlowB = corrFlowB
     videoNonLocalFlowF = None
     videoNonLocalFlowB = None
-    if args.completeFlow:
-        start = time.time()
-        videoFlowF = complete_flow(args, corrFlowF, flow_mask, 'forward', FlowF_edge)
-        videoFlowB = complete_flow(args, corrFlowB, flow_mask, 'backward', FlowB_edge)
-        if args.Nonlocal:
-            videoNonLocalFlowF = complete_flow(args, corrFlowNLF, flow_mask, 'nonlocal_forward', None)
-            videoNonLocalFlowB = complete_flow(args, corrFlowNLB, flow_mask, 'nonlocal_backward', None)
-        print('\nFinish flow completion. Consuming time:', time.time() - start)
+    start = time.time()
+    videoFlowF = complete_flow(args, corrFlowF, flow_mask, 'forward', FlowF_edge)
+    videoFlowB = complete_flow(args, corrFlowB, flow_mask, 'backward', FlowB_edge)
+    if args.Nonlocal:
+        videoNonLocalFlowF = complete_flow(args, corrFlowNLF, flow_mask, 'nonlocal_forward', None)
+        videoNonLocalFlowB = complete_flow(args, corrFlowNLB, flow_mask, 'nonlocal_backward', None)
+    print('\nFinish flow completion. Consuming time:', time.time() - start)
 
 
     # Prepare gradients
@@ -847,7 +844,6 @@ if __name__ == '__main__':
 
     # extra args
     parser.add_argument('--iteration', default=12, help="RAFT iteration")
-    parser.add_argument('--completeFlow', action='store_true', help='complete flow')
     parser.add_argument('--inpaintAll', action='store_true', help='inpaint all frames, only do one flow reference ')
     
 
