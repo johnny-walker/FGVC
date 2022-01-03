@@ -521,7 +521,7 @@ def video_completion(args):
         # mask indicating the missing region in the video.
         mask = np.stack(mask, -1).astype(bool)
         flow_mask = np.stack(flow_mask, -1).astype(bool)
-        print('\n Finish filling mask holes. Consuming time:', time.time() - start)  
+        print('\nFinish filling mask holes. Consuming time:', time.time() - start)  
 
     if args.edge_guide:
         start = time.time()
