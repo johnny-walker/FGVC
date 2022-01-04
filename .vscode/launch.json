@@ -19,7 +19,6 @@
                       "--model", "weight/raft-things.pth",
                       "--deepfill_model", "weight/imagenet_deepfill.pth",
                       "--iteration", "3",
-                      "--inpaintAll",
                ],
         }
         //*/

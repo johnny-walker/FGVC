@@ -57,7 +57,7 @@ Finish flow completion. Consuming time: 395.17946910858154
 Finish frame completion. Consuming time: 777.1359350681305
 total consuming time: 1308.3219661712646
 
-Beach (55 frames) - mask area is small
+<GPU-Beach> (55 frames) - mask area is small
 Finish flow calculation. Consuming time: 25.865521907806396
 Finish filling mask holes. Consuming time: 2.773974895477295
 Finish flow completion. Consuming time: 19.77345371246338
@@ -65,8 +65,35 @@ Finish flow completion. Consuming time: 19.77345371246338
 Finish frame completion. Consuming time: 21.283280611038208
 total consuming time: 112.37362003326416
 
-Tennis (70 frames) - mask is not small
-Finish flow calculation. Consuming time: 17.802692651748657
-Finish filling mask holes. Consuming time: 2.0737087726593018
-Finish flow completion. Consuming time: 79.1164653301239
-Finish frame completion. Consuming time: 57.00275707244873
+<GPU-Tennis> (70 frames) - mask is not small
+python video_completion.py --mode object_removal --path ../data/tennis --path_mask ../data/tennis_mask --outroot ../result/tennis --iteration 4 
+
+Finish flow calculation. Consuming time: 19.484191417694092
+Finish filling mask holes. Consuming time: 1.9516589641571045
+Finish flow completion. Consuming time: 76.52959394454956
+iteration: 0
+Finish color propagation. Consuming time: 20.327502727508545
+frame 69 inpainting completed, consuming time: 0.7475166320800781
+iteration: 1
+Finish color propagation. Consuming time: 10.458981275558472
+frame 0 inpainting completed, consuming time: 0.7081170082092285
+iteration: 2
+Finish color propagation. Consuming time: 10.090511798858643
+frame 0 inpainting completed, consuming time: 0.7016811370849609
+Total consuming time: 149.45054078102112
+
+python video_completion.py --mode object_removal --path ../data/tennis --path_mask ../data/tennis_mask --outroot ../result/tennis --iteration 4 --inpainting
+(quality not good)
+Finish flow calculation. Consuming time: 19.444265365600586
+Finish filling mask holes. Consuming time: 1.9519779682159424
+Finish flow completion. Consuming time: 76.42325186729431
+iteration: 0
+Finish color propagation. Consuming time: 20.41491174697876
+Total consuming time: 156.7430863380432
+
+<CPU-Beach>
+Finish flow calculation. Consuming time: 1322.481701850891 (slow, no openvino)
+Finish filling mask holes. Consuming time: 4.156881093978882
+Finish flow completion. Consuming time: 35.65428686141968
+Finish color propagation. Consuming time: 37.77534008026123
+frame 0 inpainting completed, consuming time: 192.57385897636414 (slow, no openvino)

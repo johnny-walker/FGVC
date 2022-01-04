@@ -216,7 +216,7 @@ def infer_flow(args, mode, filename, image1, image2, imgH, imgW, model, homograp
                                fyyy.reshape(imgH, imgW, 1) - fy.reshape(imgH, imgW, 1)), axis=2)
 
     #Image.fromarray(utils.flow_viz.flow_to_image(flow)).save(os.path.join(args.outroot, 'flow', mode + '_png', filename + '.png'))
-    #utils.frame_utils.writeFlow(flo_path, flow)
+    utils.frame_utils.writeFlow(flo_path, flow)
 
     return flow
 
@@ -484,7 +484,7 @@ def video_completion(args):
 
     # Calcutes the corrupted flow.
     corrFlowF, corrFlowB, corrFlowNLF, corrFlowNLB = calculate_flow(args, RAFT_model, video)
-    print('\nFinish flow prediction.')
+    #print('\nFinish flow prediction.')
 
     start = time.time()
     # Makes sure video is in BGR (opencv) format.
@@ -588,7 +588,7 @@ def video_completion(args):
         # imageio.mimsave(os.path.join(args.outroot, 'frame_comp_' + str(iter), 'intermediate_{0}.gif'.format(str(iter))), video_comp_, format='gif', fps=12)
  
         start = time.time()
-        if args.inpainting:
+        if args.inpainting or iter >= 2:    # do color propagation at most 3 times
             mask_tofill, video_comp = spatial_inpaint(deepfill, mask_tofill, video_comp, nFrame)
             break
         else:
