@@ -432,7 +432,7 @@ def complete_flow(args, corrFlow, flow_mask, mode, edge=None):
         #
         # # Saves the flow and flow_img.
         # flow_img.save(os.path.join(args.outroot, 'flow_comp', mode + '_png', '%05d.png'%i))
-        #utils.frame_utils.writeFlow(os.path.join(args.outroot, 'flow_comp', mode + '_flo', '%05d.flo'%i), compFlow[:, :, :, i])
+        utils.frame_utils.writeFlow(os.path.join(args.outroot, 'flow_comp', mode + '_flo', '%05d.flo'%i), compFlow[:, :, :, i])
 
     return compFlow
 

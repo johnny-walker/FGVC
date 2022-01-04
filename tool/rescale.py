@@ -77,12 +77,12 @@ def main(args):
         output = cv2.resize(src, dsize)
         name = os.path.split(filename)[-1]
         outfile = os.path.join(args.outroot, name)
-        print (outfile)#, '\r', end='')
+        print (outfile, '\r', end='')
         cv2.imwrite(outfile, output) 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--path', default='../data/blackswan', help="dataset for evaluation")
-parser.add_argument('--outroot', default='../data/blackswan_scale', help="output directory")
+parser.add_argument('--path', default='../data/bumps_mask', help="dataset for evaluation")
+parser.add_argument('--outroot', default='../data/bumps_mask', help="output directory")
 parser.add_argument('--H_resize', dest='H_resize', default=720, type=int, help='H sesize')
 parser.add_argument('--W_resize', dest='W_resize', default=1280,  type=int, help='W resize')
 
