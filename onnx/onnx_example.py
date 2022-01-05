@@ -8,12 +8,7 @@ import onnx
 import argparse
 
 
-DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
-if DEVICE == 'cuda':
-    print(torch.cuda.get_device_name(torch.cuda.current_device()))
-else:
-    print("cuda device not found, using cpu...")
-
+DEVICE = 'cpu'
 def convert_to_ONNX(args):
     dummy_input = torch.randn(10, 3, 224, 224, device=DEVICE)
     model = torchvision.models.alexnet(pretrained=True)
@@ -39,7 +34,7 @@ if __name__ == '__main__':
 
     if not os.path.exists(args.onnx_name) :
         # create folder
-        folder = None
+        folder = ''
         splits = os.path.split(args.onnx_name)
         for i in range(len(splits)-1):
             folder = os.path.join(folder, splits[i])
