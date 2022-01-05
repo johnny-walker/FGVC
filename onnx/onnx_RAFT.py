@@ -9,8 +9,7 @@ import argparse
 
 print(torch.__version__)
 
-DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
-
+DEVICE = 'cpu'
 def initialize_RAFT(args):
     """Initializes the RAFT model.
     """
@@ -28,7 +27,7 @@ def convert_to_ONNX(args):
     # set the model to inference mode 
     RAFT_model.eval() 
 
-    dummy_input  = (torch.randn(1, 3, 720, 1280, device=DEVICE), torch.randn(1, 3, 720, 1280,device=DEVICE))
+    dummy_input  = (torch.randn(1, 3, 720, 1280, device=DEVICE), torch.randn(1, 3, 720, 1280, device=DEVICE))
     input_names  = ("image1", "image2", "iters")
     output_names = ("flow")
 
