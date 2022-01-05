@@ -4,7 +4,7 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-        ///* FGVC
+        /* FGVC
         {
             "name": "Python: FGVC",
             "type": "python",
@@ -21,7 +21,7 @@
                       "--iteration", "3",
                ],
         }
-        //*/
+        */
         /* MaskRCNN
         {
             "name": "Python: MaskRCNN",
@@ -33,16 +33,18 @@
                ],            
         }
         */
-        /* onnx "${file}"
+        ///* onnx "${file}"
         {
             "name": "Python: onnx",
             "type": "python",
             "request": "launch",
-            "program":  "${file}",
+            //"program":  "${file}",
+            "program":  "onnx/onnx_RAFT.py",
             "console": "integratedTerminal",
-            "args" : ["--onnx_name", "weight_onnx/alexnet.onnx", 
+            "args" : ["--model", "weight/raft-things.pth",
+                      "--onnx_name", "weight_onnx/raft.onnx",
                      ],            
         }
-        */
+        //*/
     ]
 }

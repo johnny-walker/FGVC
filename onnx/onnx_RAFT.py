@@ -1,11 +1,11 @@
 import os
-
-from RAFT import utils
+import sys
+sys.path.append(os.path.abspath(os.path.join(__file__, '..', '..')))
 from RAFT import RAFT
 
 import torch
-import onnx
 import argparse
+import onnx
 
 print(torch.__version__)
 
@@ -35,14 +35,13 @@ def convert_to_ONNX(args):
                       dummy_input ,
                       args.onnx_name,
                       input_names = input_names, 
-                      output_names = output_names,
-                      opset_version = 10)
+                      output_names = output_names)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
     # RAFT
-    parser.add_argument('--model', default='../weight/raft-things.pth', help="restore checkpoint")
+    parser.add_argument('--model', default='weight/raft-things.pth', help="restore checkpoint")
     parser.add_argument('--small', action='store_true', help='use small model')
     parser.add_argument('--mixed_precision', action='store_true', help='use mixed precision')
     parser.add_argument('--alternate_corr', action='store_true', help='use efficent correlation implementation')
@@ -56,7 +55,13 @@ if __name__ == '__main__':
         splits = os.path.split(args.onnx_name)
         for i in range(len(splits)-1):
             folder = os.path.join(folder, splits[i])
-        os.makedirs(folder)
+        if not os.path.exists(folder):
+            os.makedirs(folder)
 
         # convert to onnx
         convert_to_ONNX(args)
+    
+    # Load the ONNX model
+    model = onnx.load(args.onnx_name)
+    onnx.checker.check_model(model)
+    print(onnx.helper.printable_graph(model.graph))

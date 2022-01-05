@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 import numpy as np
 from scipy import interpolate
-
+#from mmcv.ops.point_sample import bilinear_grid_sample
 
 class InputPadder:
     """ Pads images such that dimensions are divisible by 8 """
@@ -63,6 +63,7 @@ def bilinear_sampler(img, coords, mode='bilinear', mask=False):
 
     grid = torch.cat([xgrid, ygrid], dim=-1)
     img = F.grid_sample(img, grid, align_corners=True)
+    #img = bilinear_grid_sample(img, grid, align_corners=True)
 
     if mask:
         mask = (xgrid > -1) & (ygrid > -1) & (xgrid < 1) & (ygrid < 1)
