@@ -1,5 +1,6 @@
+data/
 result/
+weight_onnx/
 **/__pycache__
 *.pyc
 .DS_Store 
-data/

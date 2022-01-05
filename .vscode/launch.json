@@ -33,5 +33,16 @@
                ],            
         }
         */
+        /* onnx "${file}"
+        {
+            "name": "Python: onnx",
+            "type": "python",
+            "request": "launch",
+            "program":  "${file}",
+            "console": "integratedTerminal",
+            "args" : ["--onnx_name", "weight_onnx/alexnet.onnx", 
+                     ],            
+        }
+        */
     ]
 }
