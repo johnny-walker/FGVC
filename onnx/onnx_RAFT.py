@@ -42,8 +42,8 @@ def convert_to_ONNX(args):
     RAFT_model.eval() 
 
     dummy_input  = (torch.randn(1, 3, 720, 1280, device=DEVICE), torch.randn(1, 3, 720, 1280, device=DEVICE))
-    input_names  = ("image1", "image2")
-    output_names = ("flow")
+    input_names  = ('image1', 'image2')
+    output_names = ('flow')
 
     torch.onnx.export(RAFT_model, 
                       dummy_input ,
@@ -126,6 +126,7 @@ def infer_flow_openvino(args):
     input_blobs = []
     for item in net.input_info:
         input_blobs.append(item)
+    net_outputs = list(net.outputs.keys())
 
     if exec_net is not None:
         for idx in range(len(video)-1):
@@ -145,8 +146,8 @@ def infer_flow_openvino(args):
                 print(request_status)
                 flow = exec_net.requests[0]
             else:
-                result = exec_net.infer(inputs)
-                flow = result[0]
+                outputs = exec_net.infer(inputs)
+                flow = outputs[net_outputs[0]]
             print(time.time()-start)
             
             flow = flow.reshape((-1, flow.shape[2], flow.shape[3]))
