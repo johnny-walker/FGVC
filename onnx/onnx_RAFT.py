@@ -122,23 +122,33 @@ def infer_flow_openvino(args):
     ie = IECore()
     net = ie.read_network(model=args.onnx_name)
     # Loading the network to the inference engine
-    sess = ie.load_network(network=net, device_name="CPU")
-    input_blobs  = next(iter(net.input_info))
+    exec_net = ie.load_network(network=net, device_name="CPU")
+    input_blobs = []
+    for item in net.input_info:
+        input_blobs.append(item)
 
-    if sess is not None:
+    if exec_net is not None:
         for idx in range(len(video)-1):
-            start = time.time()
             filename = os.path.split(filename_list[idx])[-1]
             filename = os.path.splitext(filename)[0]
             #filename =  + '%05d'%idx
 
             image1 = video[idx,   None]
             image2 = video[idx+1, None]
-            result = sess.run( None, { input_blobs[0]: image1,
-                                       input_blobs[1]: image2
-                                     } )
+            inputs = { input_blobs[0]: image1, input_blobs[1]: image2 }
+
+            inferAsync = False
+            start = time.time()
+            if inferAsync:
+                exec_net.requests[0].async_infer(inputs)
+                request_status = exec_net.requests[0].wait()
+                print(request_status)
+                flow = exec_net.requests[0]
+            else:
+                result = exec_net.infer(inputs)
+                flow = result[0]
             print(time.time()-start)
-            flow = result[0]
+            
             flow = flow.reshape((-1, flow.shape[2], flow.shape[3]))
             flow = np.transpose(flow, (1, 2, 0))
             flo_path = os.path.join(args.outroot+'_flow', '_flo', filename + '.flo')
