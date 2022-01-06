@@ -5,7 +5,7 @@ import torchvision
 print(torch.__version__)
 
 import onnx
-import onnxruntime as ort
+import onnxruntime as onnxrun
 import argparse
 import numpy as np
 
@@ -52,7 +52,7 @@ if __name__ == '__main__':
     print(onnx.helper.printable_graph(model.graph))
 
     # inference
-    ort_session = ort.InferenceSession(args.onnx_name)
+    ort_session = onnxrun.InferenceSession(args.onnx_name)
     outputs = ort_session.run(None,
                               {"actual_input_1": np.random.randn(10, 3, 224, 224).astype(np.float32) },
                               )

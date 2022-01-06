@@ -9,6 +9,7 @@ try:
     from mmcv.ops.point_sample import bilinear_grid_sample
 except:
     fMMCV = False
+#fMMCV = False
 
 class InputPadder:
     """ Pads images such that dimensions are divisible by 8 """
