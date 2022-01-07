@@ -4,7 +4,7 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-        ///* FGVC
+        /* FGVC
         {
             "name": "Python: FGVC",
             "type": "python",
@@ -20,7 +20,20 @@
                       "--deepfill_model", "weight/imagenet_deepfill.pth",
                       "--iteration", "3",
                ],
-        }
+        },
+        */
+        /* Pgm01       
+        {
+            "name": "Python: Pgm01",
+            "type": "python",
+            "request": "launch",
+            "program": "SAT/pgm01/Pgm01.py",
+            "console": "integratedTerminal",
+            "args":  [ "--video", "SAT/video/beach.mp4", 
+                        "--path",  "data/beach",
+                        "--mask",  "data/beach_mask"
+                        ],
+        },
         //*/
         /* MaskRCNN
         {
@@ -31,9 +44,9 @@
             "console": "integratedTerminal",
             "args" : ["--vid_path", "data/beach/", 
                ],            
-        }
+        },
         */
-        /* "${file}"
+        ///* "${file}"
         {
             "name": "Python: current file",
             "type": "python",
@@ -42,7 +55,7 @@
             "console": "integratedTerminal",
             "args" : [
                      ],            
-        }
-        */
+        },
+        //*/
     ]
 }

@@ -1,8 +1,11 @@
 data/
 result/
 weight_onnx/
-SAT/
+SAT/models/
+SAT/video/
+SAT/dump/
 weight/
 **/__pycache__
 *.pyc
+*.pth
 .DS_Store 
