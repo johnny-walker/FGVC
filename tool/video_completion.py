@@ -17,10 +17,6 @@ from skimage.feature import canny
 import torchvision.transforms.functional as F
 import time
 
-#from RAFT import utils
-from RAFT import RAFT
-from cvflow import CVFlowPredictor
-
 import utils.region_fill as rf
 from utils.Poisson_blend import Poisson_blend
 from utils.Poisson_blend_img import Poisson_blend_img
@@ -30,11 +26,14 @@ from utils.common_utils import flow_edge
 from spatial_inpaint import spatial_inpaint
 from frame_inpaint import DeepFillv1
 from edgeconnect.networks import EdgeGenerator_
+#from RAFT import utils
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 if DEVICE == 'cuda':
+    from RAFT import RAFT
     print(torch.cuda.get_device_name(torch.cuda.current_device()))
 else:
+    from cvflow import CVFlowPredictor
     print("cuda device not found, using cpu...")
 
 def detectAndDescribe(image):
