@@ -26,6 +26,13 @@ print("cuda device not found, using cpu...")
 
 class VObjRemover():
     args = None
+    imgHeight = 720
+    imgWidth = 1280
+    nFrame = 0
+    video = []
+    mask = []
+    flow_mask = []
+
     def __init__(self, args):
         self.args = args
 
@@ -39,16 +46,6 @@ class VObjRemover():
         model = CVFlowPredictor()
         return model
 
-    def initialize_RAFT(self):
-        """Initializes the RAFT model.
-        """
-        model = torch.nn.DataParallel(RAFT(self.args))
-        model.load_state_dict(torch.load(self.args.model, map_location=torch.device(DEVICE)) )
-        model = model.module
-        model.to(DEVICE)
-        model.eval()
-
-        return model
 
     def infer_flow(self, mode, filename, image1, image2, imgH, imgW, model):
         if DEVICE == 'cpu':
@@ -130,60 +127,51 @@ class VObjRemover():
 
         return compFlow
 
-
-    def inference(self):
-        begin = time.time()
-        # Flow model.
-        if DEVICE == 'cpu':
-            RAFT_model = self.initialize_CVFlow()
-        else:
-            RAFT_model = self.initialize_RAFT()
-
-        # Loads frames.
-        filename_list = glob.glob(os.path.join(self.args.path, '*.png')) + \
-                        glob.glob(os.path.join(self.args.path, '*.jpg'))
-
+    def convertData(self, video, masks):
         # Obtains imgH, imgW and nFrame.
-        imgH, imgW = np.array(Image.open(filename_list[0])).shape[:2]
-        nFrame = len(filename_list)
+        self.imgHeight, self.imgWidth = video[0].shape[:2]
+        self.nFrame = len(video)
 
-        # Loads video.
-        video = []
-        for filename in sorted(filename_list):
-            video.append(torch.from_numpy(np.array(Image.open(filename)).astype(np.uint8)[..., :3]).permute(2, 0, 1).float())
+        # convert video frames
+        self.video = []
+        for frame in video:
+            # convert to CHW
+            frm = torch.from_numpy(frame)[..., :3].permute(2, 0, 1).float()
+            self.video.append(frm)
 
-        video = torch.stack(video, dim=0)
-        video = video.to(DEVICE)
+        self.video = torch.stack(self.video, dim=0)
+        self.video = self.video.to(DEVICE)
 
-        # Calcutes the corrupted flow.
-        corrFlowF, corrFlowB, _, _ = self.calculate_flow(RAFT_model, video)
-        #print('\nFinish flow prediction.')
-
-        start = time.time()
-        # Makes sure video is in BGR (opencv) format.
-        video = video.permute(2, 3, 1, 0).cpu().numpy()[:, :, ::-1, :] / 255.
-
-
-        # Loads masks.
-        filename_list = glob.glob(os.path.join(self.args.path_mask, '*.png')) + \
-                        glob.glob(os.path.join(self.args.path_mask, '*.jpg'))
-
-        mask = []
-        flow_mask = []
-        for filename in sorted(filename_list):
-            mask_img = np.array(Image.open(filename).convert('L'))
-            mask.append(mask_img)
+        # convert masks.
+        self.mask = []
+        self.flow_mask = []
+        for mask in masks:
+            mask_img = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
+            self.mask.append(mask_img)
 
             # Dilate 15 pixel so that all known pixel is trustworthy
             flow_mask_img = scipy.ndimage.binary_dilation(mask_img, iterations=15)
             # Close the small holes inside the foreground objects
             flow_mask_img = cv2.morphologyEx(flow_mask_img.astype(np.uint8), cv2.MORPH_CLOSE, np.ones((21, 21),np.uint8)).astype(bool)
             flow_mask_img = scipy.ndimage.binary_fill_holes(flow_mask_img).astype(bool)
-            flow_mask.append(flow_mask_img)
+            self.flow_mask.append(flow_mask_img)
+
+    def inference(self, callback):
+        begin = time.time()
+        # Flow model.
+        RAFT_model = self.initialize_CVFlow()
+
+        # Calcutes the corrupted flow.
+        corrFlowF, corrFlowB, _, _ = self.calculate_flow(RAFT_model, self.video)
+        #print('\nFinish flow prediction.')
+
+        start = time.time()
+        # Makes sure video is in BGR (opencv) format.
+        video = self.video.permute(2, 3, 1, 0).cpu().numpy()[:, :, ::-1, :] / 255.
 
         # mask indicating the missing region in the video.
-        mask = np.stack(mask, -1).astype(bool)
-        flow_mask = np.stack(flow_mask, -1).astype(bool)
+        mask = np.stack(self.mask, -1).astype(bool)
+        flow_mask = np.stack(self.flow_mask, -1).astype(bool)
         print('\nFinish filling mask holes. Consuming time:', time.time() - start)  
 
         # Completes the flow.
@@ -197,6 +185,10 @@ class VObjRemover():
         iter = 0
         mask_tofill = mask
         video_comp = video
+
+        nFrame = self.nFrame
+        imgH = self.imgHeight
+        imgW = self.imgWidth
 
         # Image inpainting model.
         deepfill = DeepFillv1(pretrained_model=self.args.deepfill_model, image_shape=[imgH, imgW])
@@ -217,8 +209,8 @@ class VObjRemover():
                 img = video_comp[:, :, :, i] * 255
                 # Green indicates the regions that are not filled yet.
                 img[mask_tofill[:, :, i]] = [0, 255, 0]
+                callback(img)
                 #cv2.imwrite(os.path.join(self.args.outroot, 'frame_comp_' + str(iter), '%05d.png'%i), img)
-
 
             start = time.time()
             # do color propagation at most n+1 times
@@ -241,6 +233,30 @@ class VObjRemover():
         print('saved file:', filename)
 
 
+def loadData(args):
+    # load data frames
+    videoFrames = []
+    filename_list = glob.glob(os.path.join(args.path, '*.png')) + \
+                    glob.glob(os.path.join(args.path, '*.jpg'))
+
+    for filename in sorted(filename_list):
+        frame = cv2.imread(filename)
+        videoFrames.append(frame)
+
+    # load mask
+    maskFrames = []
+    filename_list = glob.glob(os.path.join(args.path_mask, '*.png')) + \
+                    glob.glob(os.path.join(args.path_mask, '*.jpg'))
+
+    for filename in sorted(filename_list):
+        frame_mask = cv2.imread(filename)
+        maskFrames.append(frame_mask)
+
+    return videoFrames, maskFrames
+
+def callback(frame):
+    print(frame.shape) 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
@@ -260,6 +276,9 @@ if __name__ == '__main__':
     parser.add_argument('--nProgagating', default=2, help="do color progagating at most n+1 time")
 
     args = parser.parse_args()
+    video, masks = loadData(args)
+    print (video[0].shape, masks[0].shape)
 
     vObjRemover = VObjRemover(args)
-    vObjRemover.inference()
+    vObjRemover.convertData(video, masks)
+    vObjRemover.inference(callback)
