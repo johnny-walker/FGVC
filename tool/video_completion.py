@@ -444,7 +444,7 @@ def complete_flow(args, corrFlow, flow_mask, mode, edge=None):
         #
         # # Saves the flow and flow_img.
         # flow_img.save(os.path.join(args.outroot, 'flow_comp', mode + '_png', '%05d.png'%i))
-        utils.frame_utils.writeFlow(os.path.join(args.outroot, 'flow_comp', mode + '_flo', '%05d.flo'%i), compFlow[:, :, :, i])
+        #utils.frame_utils.writeFlow(os.path.join(args.outroot, 'flow_comp', mode + '_flo', '%05d.flo'%i), compFlow[:, :, :, i])
 
     return compFlow
 
@@ -603,7 +603,8 @@ def video_completion(args):
         # imageio.mimsave(os.path.join(args.outroot, 'frame_comp_' + str(iter), 'intermediate_{0}.gif'.format(str(iter))), video_comp_, format='gif', fps=12)
  
         start = time.time()
-        if args.inpainting or iter >= 2:    # do color propagation at most 3 times
+        # do color propagation at most n+1 times
+        if args.inpainting or iter >= args.nProgagating:    
             mask_tofill, video_comp = spatial_inpaint(deepfill, mask_tofill, video_comp, nFrame)
             break
         else:
@@ -869,6 +870,7 @@ if __name__ == '__main__':
     # extra args
     parser.add_argument('--iteration', default=12, help="RAFT iteration")
     parser.add_argument('--inpainting', action='store_true', help='all the remaining unknown pixels apply inpainting')
+    parser.add_argument('--nProgagating', default=2, help="do color progagating at most n+1 time")
 
     args = parser.parse_args()
 
