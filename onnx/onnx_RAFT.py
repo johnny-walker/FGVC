@@ -22,7 +22,6 @@ import numpy as np
 import glob
 
 
-
 DEVICE = 'cpu'
 def initialize_RAFT(args):
     """Initializes the RAFT model.
@@ -47,13 +46,13 @@ def convert_to_ONNX(args):
 
     torch.onnx.export(RAFT_model, 
                       dummy_input ,
-                      args.onnx_name,
+                      args.onnx_model,
                       input_names = input_names, 
                       output_names = output_names,
                       opset_version = 11)
 
 def check_model(args):
-    model = onnx.load(args.onnx_name)
+    model = onnx.load(args.onnx_model)
     onnx.checker.check_model(model)
     print(onnx.helper.printable_graph(model.graph))
 
@@ -89,7 +88,7 @@ def infer_flow_onnx(args):
     create_dir(os.path.join(args.outroot+'_flow', '_png'))
 
     # inference
-    sess = onnxrun.InferenceSession(args.onnx_name)
+    sess = onnxrun.InferenceSession(args.onnx_model)
     #inputs = sess.get_inputs()
     input_image1 = sess.get_inputs()[0].name
     input_image2 = sess.get_inputs()[1].name
@@ -120,7 +119,7 @@ def infer_flow_openvino(args):
 
     # inference
     ie = IECore()
-    net = ie.read_network(model=args.onnx_name)
+    net = ie.read_network(model=args.onnx_model)
     # Loading the network to the inference engine
     exec_net = ie.load_network(network=net, device_name="CPU")
     input_blobs = []
@@ -138,14 +137,15 @@ def infer_flow_openvino(args):
             image2 = video[idx+1, None]
             inputs = { input_blobs[0]: image1, input_blobs[1]: image2 }
 
-            inferAsync = False
+            asyncInference = True
             start = time.time()
-            if inferAsync:
+            if asyncInference:
                 exec_net.requests[0].async_infer(inputs)
                 request_status = exec_net.requests[0].wait()
                 print(request_status)
                 flow = exec_net.requests[0]
-            else:
+            else: 
+                # system hangs, not working
                 outputs = exec_net.infer(inputs)
                 flow = outputs[net_outputs[0]]
             print(time.time()-start)
@@ -166,16 +166,16 @@ if __name__ == '__main__':
     parser.add_argument('--mixed_precision', action='store_true', help='use mixed precision')
     parser.add_argument('--alternate_corr', action='store_true', help='use efficent correlation implementation')
 
-    parser.add_argument('--onnx_name', default='weight_onnx/raft.onnx', help="saving path")
+    parser.add_argument('--onnx_model', default='weight_onnx/raft.onnx', help="saving onnx model name and path")
     parser.add_argument('--path', default='data/beach', help="soruce path")
     parser.add_argument('--outroot', default='data/beach', help="flo out path")
     args = parser.parse_args()
 
     if isONNX:
-        if not os.path.exists(args.onnx_name) :
+        if not os.path.exists(args.onnx_model) :
             # create folder
             folder = ''
-            splits = os.path.split(args.onnx_name)
+            splits = os.path.split(args.onnx_model)
             for i in range(len(splits)-1):
                 folder = os.path.join(folder, splits[i])
             create_dir(folder)
@@ -184,6 +184,7 @@ if __name__ == '__main__':
             convert_to_ONNX(args)
             check_model(args)
         infer_flow_onnx(args)   # slow
-    else:   # already convreted .onnx file successfully, load directly
+    else:   
+        # already convreted .onnx file successfully, load directly
         infer_flow_openvino(args)
 

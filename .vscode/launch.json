@@ -38,11 +38,11 @@
             "name": "Python: onnx",
             "type": "python",
             "request": "launch",
-            //"program":  "${file}",
-            "program":  "onnx/onnx_RAFT.py",
+            "program":  "${file}",
+            //"program":  "onnx/onnx_RAFT.py",
             "console": "integratedTerminal",
-            "args" : ["--model", "weight/raft-things.pth",
-                      "--onnx_name", "weight_onnx/raft.onnx",
+            "args" : [//"--model", "weight/raft-things.pth",
+                      //"--onnx_model", "weight_onnx/raft.onnx",
                      ],            
         }
         //*/
