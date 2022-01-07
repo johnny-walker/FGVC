@@ -17,7 +17,7 @@ from skimage.feature import canny
 import torchvision.transforms.functional as F
 import time
 
-from RAFT import utils
+#from RAFT import utils
 from RAFT import RAFT
 from cvflow import CVFlowPredictor
 

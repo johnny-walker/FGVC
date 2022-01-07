@@ -48,7 +48,7 @@ python -m pip install -e detectron2
 ================================================================
 Run script:
 ================================================================
-python video_completion.py --mode object_removal --path ../data/beach --path_mask ../data/beach_mask --outroot ../result/beach --seamless
+python video_completion.py --mode object_removal --path ../data/beach --path_mask ../data/beach_mask --outroot ../result/beach --iteration 3
 
 <GPU-Beach> (55 frames) - mask area is small
 Finish flow calculation. Consuming time: 25.865521907806396
