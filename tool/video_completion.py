@@ -19,6 +19,7 @@ import time
 
 from RAFT import utils
 from RAFT import RAFT
+from cvflow import CVFlowPredictor
 
 import utils.region_fill as rf
 from utils.Poisson_blend import Poisson_blend
@@ -171,6 +172,9 @@ def create_dir(dir):
     if not os.path.exists(dir):
         os.makedirs(dir)
 
+def initialize_CVFlow():
+    model = CVFlowPredictor()
+    return model
 
 def initialize_RAFT(args):
     """Initializes the RAFT model.
@@ -194,8 +198,16 @@ def infer_flow(args, mode, filename, image1, image2, imgH, imgW, model, homograp
 
     if not homography:
         # original uters = 12
-        _, flow = model(image1, image2, iters=int(args.iteration), test_mode=True)
-        flow = flow[0].permute(1, 2, 0).cpu().numpy()
+        if DEVICE == 'cpu':
+            frame1 = image1.reshape((-1, image1.shape[2], image1.shape[3])).cpu().numpy()
+            frame1 = np.transpose(frame1, (1, 2, 0)).copy()
+            frame2 = image2.reshape((-1, image1.shape[2], image1.shape[3])).cpu().numpy()
+            frame2 = np.transpose(frame2, (1, 2, 0)).copy()
+            flow = model.predict(frame1, frame2)
+            #model.write_viz(os.path.join(args.outroot, 'flow', mode + '_png', filename + '.png'), flow)
+        else:
+            _, flow = model(image1, image2, iters=int(args.iteration), test_mode=True)
+            flow = flow[0].permute(1, 2, 0).cpu().numpy()
     else:
         image2_reg, H_BA = homograpy(image1, image2)
         image2_reg = torch.tensor(image2_reg).permute(2, 0, 1)[None].float().to(DEVICE)
@@ -216,7 +228,7 @@ def infer_flow(args, mode, filename, image1, image2, imgH, imgW, model, homograp
                                fyyy.reshape(imgH, imgW, 1) - fy.reshape(imgH, imgW, 1)), axis=2)
 
     #Image.fromarray(utils.flow_viz.flow_to_image(flow)).save(os.path.join(args.outroot, 'flow', mode + '_png', filename + '.png'))
-    utils.frame_utils.writeFlow(flo_path, flow)
+    #utils.frame_utils.writeFlow(flo_path, flow)
 
     return flow
 
@@ -464,7 +476,10 @@ def edge_completion(args, EdgeGenerator, corrFlow, flow_mask, mode):
 def video_completion(args):
     begin = time.time()
     # Flow model.
-    RAFT_model = initialize_RAFT(args)
+    if DEVICE == 'cpu':
+        RAFT_model = initialize_CVFlow()
+    else:
+        RAFT_model = initialize_RAFT(args)
 
     # Loads frames.
     filename_list = glob.glob(os.path.join(args.path, '*.png')) + \
@@ -596,16 +611,20 @@ def video_completion(args):
             iter += 1
 
     print('Total consuming time:', time.time() - begin)    
-    # save mp4
     create_dir(os.path.join(args.outroot, 'frame_comp_' + 'final'))
     video_comp_ = (video_comp * 255).astype(np.uint8).transpose(3, 0, 1, 2)[:, :, :, ::-1]
+    ''' 
+    # save each frame
     for i in range(nFrame):
         img = video_comp[:, :, :, i] * 255
-        # cv2.imwrite(os.path.join(args.outroot, 'frame_comp_' + 'final', '%05d.png'%i), img)
-        imageio.mimwrite(os.path.join(args.outroot, 'frame_comp_' + 'final', 'final.mp4'), video_comp_, fps=12, quality=8, macro_block_size=1)
-        # imageio.mimsave(os.path.join(args.outroot, 'frame_comp_' + 'final', 'final.gif'), video_comp_, format='gif', fps=12)
-        print("saving mp4: {0} ".format(i), '\r', end='')
-
+        cv2.imwrite(os.path.join(args.outroot, 'frame_comp_' + 'final', '%05d.png'%i), img)
+        print("saving mp4: {0} ".format(i), '\r', end='')        
+    '''
+    # save mp4
+    filename = os.path.join(args.outroot, 'frame_comp_' + 'final', 'final.mp4')
+    imageio.mimwrite(filename, video_comp_, fps=15, quality=8, macro_block_size=1)
+    # imageio.mimsave(os.path.join(args.outroot, 'frame_comp_' + 'final', 'final.gif'), video_comp_, format='gif', fps=15)
+    print('saved file:', filename)
 
 def video_completion_seamless(args):
 
