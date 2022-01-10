@@ -38,7 +38,7 @@ if __name__ == '__main__':
         img = cv2.imread(imfile)
         return img
 
-    predictor = CVFlowPredictor()
+    cvflow = CVFlowPredictor()
 
     images = glob.glob(os.path.join('data/beach', '*.png')) + \
              glob.glob(os.path.join('data/beach', '*.jpg'))
@@ -54,11 +54,11 @@ if __name__ == '__main__':
         img2 = load_image(file2)
 
         # calculate optical flow
-        flow, viz = predictor.predict(img1, img2)
+        flow = cvflow.predict(img1, img2)
             
         filename = os.path.split(file1)[-1]
         name = os.path.splitext(filename)[0]
         output = os.path.join(out_path, "{:s}_flow.jpg".format(name))
-        predictor.write_viz(output, viz)
+        cvflow.write_viz(output, flow)
         print(output, time.time()-since)
         break
