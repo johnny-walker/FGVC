@@ -10,7 +10,7 @@ import torch
 import argparse
 print(torch.__version__)
 
-isONNX = False
+isONNX = True
 if isONNX:
     import onnx
     import onnxruntime as onnxrun
@@ -146,7 +146,7 @@ def infer_flow_openvino(args):
                 flow = exec_net.requests[0]
             else: 
                 # system hangs, not working
-                outputs = exec_net.infer(inputs)
+                outputs = exec_net.requests[0].infer(inputs)
                 flow = outputs[net_outputs[0]]
             print(time.time()-start)
             

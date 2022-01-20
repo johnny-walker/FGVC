@@ -26,7 +26,7 @@ from utils.common_utils import flow_edge
 from spatial_inpaint import spatial_inpaint
 from frame_inpaint import DeepFillv1
 from edgeconnect.networks import EdgeGenerator_
-#from RAFT import utils
+from RAFT import utils
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 if DEVICE == 'cuda':
@@ -227,7 +227,7 @@ def infer_flow(args, mode, filename, image1, image2, imgH, imgW, model, homograp
                                fyyy.reshape(imgH, imgW, 1) - fy.reshape(imgH, imgW, 1)), axis=2)
 
     #Image.fromarray(utils.flow_viz.flow_to_image(flow)).save(os.path.join(args.outroot, 'flow', mode + '_png', filename + '.png'))
-    #utils.frame_utils.writeFlow(flo_path, flow)
+    utils.frame_utils.writeFlow(flo_path, flow)
 
     return flow
 
