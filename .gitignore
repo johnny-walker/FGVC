@@ -4,7 +4,7 @@ weight_onnx/
 SAT/models/
 SAT/video/
 SAT/dump/
-output/
+output_*/
 weight/
 models/
 **/__pycache__

@@ -8,6 +8,10 @@ import numpy as np
 from openvino.inference_engine import IECore
 import pwc_utils
 
+def create_dir(dir):
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+
 def reshape_input(net, pair):
     # Call reshape, but PWCNet seems not working
     x = np.array([pair])
@@ -68,7 +72,7 @@ def inference(args):
         # Repackage input image pairs as np.ndarray
         x_adapt = np.array([(image1, image2)])  # --> B2HWC
         x_adapt = np.array([(video[idx], video[idx+1])]) 
-        print (x_adapt.shape)
+        #print (x_adapt.shape)
         x_adapt = np.array([[image1, image2]])  # --> B2HWC
         x_adapt = x_adapt.transpose((0, 4, 1, 2, 3))    # B2HWC --> BC2HW
 
@@ -84,7 +88,9 @@ def inference(args):
         flow = np.squeeze(y_adapt, axis=0) #BHWC --> HWC
         flow = pwc_utils.unpad_and_upscale(flow, x_unpad_info, video_size)
         print (flow.shape)
-        save_name = f'output/{idx:05d}.png'
+        dir =  f'output_{args.height}x{args.width}'
+        create_dir(dir)
+        save_name = f'{dir}/{idx:05d}.png'
         cv2.imwrite(save_name, pwc_utils.flow_to_img(flow))
 
 def get_args():
@@ -92,16 +98,38 @@ def get_args():
     Gets the arguments from the command line.
     '''
     parser = argparse.ArgumentParser("Load an IR into the Inference Engine")
-    # -- Create the descriptions for the commands
+
     model_desc = "location of the model XML file"
     input_desc = "location of the image input"
 
-    parser.add_argument("--model", default='../models/model_ir_640x832/pwc_frozen.xml', help=model_desc)
     parser.add_argument("--input", default='D:/_PDR/_Shared/data/tennis', help=input_desc)
-    parser.add_argument("--height", default=640, type=int, help='model input height')
-    parser.add_argument("--width", default=832, type=int, help='model input width')
-
+    parser.add_argument("--model", default='../models/model_ir_384x640/pwc_frozen.xml', help=model_desc)
+    parser.add_argument("--height", default=384, type=int, help='model input height')
+    parser.add_argument("--width", default=640, type=int, help='model input width')
     args = parser.parse_args()
+
+    conf = [{'model': '../models/model_ir_384x640/pwc_frozen.xml',
+             'height': 384,
+             'width': 640},
+            {'model': '../models/model_ir_448x768/pwc_frozen.xml',
+             'height': 448,
+             'width': 768 },
+            {'model': '../models/model_ir_640x832/pwc_frozen.xml',
+             'height': 640,
+             'width': 832 },
+            {'model': '../models/model_ir_768x1024/pwc_frozen.xml',
+             'height': 768,
+             'width': 1024 },
+            {'model': '../models/model_ir_768x1280/pwc_frozen.xml',
+             'height': 768,
+             'width': 1280 },
+           ]
+
+    opt = 4
+    args.model = conf[opt]['model']
+    args.height = conf[opt]['height']
+    args.width = conf[opt]['width']
+    
     return args
 
 def main():
