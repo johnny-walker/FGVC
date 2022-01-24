@@ -39,7 +39,7 @@ def read_frames():
     return frames, filename_list
 
 def infer_flow_openvino(args):
-    video, filename_list = read_frames()
+    frames, filename_list = read_frames()
     create_dir(os.path.join(args.outroot+'_flow', '_flo'))
     create_dir(os.path.join(args.outroot+'_flow', '_png'))
 
@@ -54,14 +54,12 @@ def infer_flow_openvino(args):
     net_outputs = list(net.outputs.keys())
 
     if exec_net is not None:
-        for idx in range(len(video)-1):
+        for idx in range(len(frames)-1):
             filename = os.path.split(filename_list[idx])[-1]
             filename = os.path.splitext(filename)[0]
             #filename =  + '%05d'%idx
 
-            image1 = video[idx,   None]
-            image2 = video[idx+1, None]
-            inputs = { input_blobs[0]: image1, input_blobs[1]: image2 }
+            inputs = { input_blobs[0]: [(frames[idx], frames[idx+1])] }
 
             start = time.time()
             outputs = exec_net.infer(inputs)
