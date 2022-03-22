@@ -102,7 +102,7 @@ def get_args():
     model_desc = "location of the model XML file"
     input_desc = "location of the image input"
 
-    parser.add_argument("--input", default='D:/_PDR/_Shared/data/tennis', help=input_desc)
+    parser.add_argument("--input", default='../data/tennis', help=input_desc)
     parser.add_argument("--model", default='../models/model_ir_384x640/pwc_frozen.xml', help=model_desc)
     parser.add_argument("--height", default=384, type=int, help='model input height')
     parser.add_argument("--width", default=640, type=int, help='model input width')
@@ -125,7 +125,7 @@ def get_args():
              'width': 1280 },
            ]
 
-    opt = 4
+    opt = 0
     args.model = conf[opt]['model']
     args.height = conf[opt]['height']
     args.width = conf[opt]['width']

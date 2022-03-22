@@ -20,7 +20,8 @@ import time
 import utils.region_fill as rf
 from utils.Poisson_blend import Poisson_blend
 from utils.Poisson_blend_img import Poisson_blend_img
-from get_flowNN import get_flowNN
+#from get_flowNN import get_flowNN
+from get_flowNN_nConsistency import get_flowNN  
 from get_flowNN_gradient import get_flowNN_gradient
 from utils.common_utils import flow_edge
 from spatial_inpaint import spatial_inpaint
