@@ -50,8 +50,6 @@ def get_flowNN(args,
     HaveFlowNN = np.ones((imgH, imgW, nFrame, 2)) * 99999
     HaveFlowNN[mask, :] = 0
     numPixInd = np.ones((imgH, imgW, nFrame)) * -1
-    #consistencyMap = np.zeros((imgH, imgW, num_candidate, nFrame))
-    #consistency_uv = np.zeros((imgH, imgW, 2, 2, nFrame))
 
     # numPixInd[x, y, t] gives the index of the missing pixel@[x, y, t] in sub,
     # i.e. which row. numPixInd[x, y, t] = idx; sub[idx, :] = [x, y, t]
@@ -90,18 +88,6 @@ def get_flowNN(args,
         # Round the backward flow neighbor location
         flow_neighbor_int = np.round(copy.deepcopy(flowB_neighbor)).astype(np.int32)
 
-        # Chen: I should combine the following two operations together
-        # Check the backward/forward consistency
-        '''
-        IsConsist, _ = BFconsistCheck(flowB_neighbor,
-                                      flowF_vertical,
-                                      flowF_horizont,
-                                      holepixPos,
-                                      args.consistencyThres)
-
-        BFdiff, BF_uv = consistCheck(videoFlowF[:, :, :, indFrame - 1],
-                                     videoFlowB[:, :, :, indFrame - 1])
-        '''
         # Check out-of-boundary
         # Last column and last row does not have valid gradient
         ValidPos = np.logical_and(
@@ -114,7 +100,6 @@ def get_flowNN(args,
         holepixPos = holepixPos[ValidPos, :]
         flowB_neighbor = flowB_neighbor[ValidPos, :]
         flow_neighbor_int = flow_neighbor_int[ValidPos, :]
-        #IsConsist = IsConsist[ValidPos]
 
         # For each missing pixel in holepixPos|[y, x, t],
         # we check its backward flow neighbor flowB_neighbor|[y', x', t-1].
@@ -128,20 +113,15 @@ def get_flowNN(args,
                         flow_neighbor_int[:, 1],
                         indFrame - 1] == 0
 
-        #KnownIsConsist = np.logical_and(KnownInd, IsConsist)
-        KnownIsConsist = KnownInd
-
-        # We save backward flow neighbor flowB_neighbor in flowNN
-        flowNN[numPixInd[holepixPos[KnownIsConsist, 0],
-                         holepixPos[KnownIsConsist, 1],
+         # We save backward flow neighbor flowB_neighbor in flowNN
+        flowNN[numPixInd[holepixPos[KnownInd, 0],
+                         holepixPos[KnownInd, 1],
                          indFrame].astype(np.int32), :, NN_idx] = \
-                                                flowB_neighbor[KnownIsConsist, :]
-        # flowNN[np.where(holepixPosInd == 1)[0][ValidPos][KnownIsConsist], :, 0] = \
-        #                                         flowB_neighbor[KnownIsConsist, :]
+                                                flowB_neighbor[KnownInd, :]
 
         # We mark [y, x, t] in HaveFlowNN as 1
-        HaveFlowNN[holepixPos[KnownIsConsist, 0],
-                   holepixPos[KnownIsConsist, 1],
+        HaveFlowNN[holepixPos[KnownInd, 0],
+                   holepixPos[KnownInd, 1],
                    indFrame,
                    NN_idx] = 1
 
@@ -150,9 +130,7 @@ def get_flowNN(args,
         # 1: Backward flow neighbor can be reached
         # -1: Pixels that do not need to be completed
 
-        #consistency_uv[holepixPos[KnownIsConsist, 0], holepixPos[KnownIsConsist, 1], NN_idx, 0, indFrame] = np.abs(BF_uv[holepixPos[KnownIsConsist, 0], holepixPos[KnownIsConsist, 1], 0])
-        #consistency_uv[holepixPos[KnownIsConsist, 0], holepixPos[KnownIsConsist, 1], NN_idx, 1, indFrame] = np.abs(BF_uv[holepixPos[KnownIsConsist, 0], holepixPos[KnownIsConsist, 1], 1])
-
+    
         # Case 2: If mask[round(y'), round(x'), t-1] == 1,
         #  the pixel@[round(y'), round(x'), t-1] is also occluded.
         #  We further check if we already assign a backward flow neighbor for the backward flow neighbor
@@ -170,7 +148,7 @@ def get_flowNN(args,
                                NN_idx] == 1
 
         # Unknown & IsConsist & HaveNNInd
-        Valid_ = np.logical_and.reduce((UnknownInd, HaveNNInd))#, IsConsist))
+        Valid_ = np.logical_and.reduce((UnknownInd, HaveNNInd))
 
         refineVec = np.concatenate((
             (flowB_neighbor[:, 0] - flow_neighbor_int[:, 0]).reshape(-1, 1),
@@ -194,10 +172,6 @@ def get_flowNN(args,
         # Change the out-of-boundary value to 0, in order to run mask[y,x,t]
         # in the next line. It won't affect anything as ValidPos_ is saved already
         flowNN_tmp[np.invert(ValidPos_), :] = 0
-        #ValidNN = mask[flowNN_tmp[:, 0],
-        #               flowNN_tmp[:, 1],
-        #               flowNN_tmp[:, 2]] == 0
-        # Valid = np.logical_and.reduce((Valid_, ValidNN, ValidPos_))
         Valid = np.logical_and.reduce((Valid_, ValidPos_))
 
         # We save the transitive backward flow neighbor flowB_neighbor in flowNN
@@ -213,12 +187,6 @@ def get_flowNN(args,
                    holepixPos[Valid, 1],
                    indFrame,
                    NN_idx] = 1
-
-        #consistency_uv[holepixPos[Valid, 0], holepixPos[Valid, 1], NN_idx, 0, indFrame] = np.maximum(np.abs(BF_uv[holepixPos[Valid, 0], holepixPos[Valid, 1], 0]), np.abs(consistency_uv[flow_neighbor_int[Valid, 0], flow_neighbor_int[Valid, 1], NN_idx, 0, indFrame - 1]))
-        #consistency_uv[holepixPos[Valid, 0], holepixPos[Valid, 1], NN_idx, 1, indFrame] = np.maximum(np.abs(BF_uv[holepixPos[Valid, 0], holepixPos[Valid, 1], 1]), np.abs(consistency_uv[flow_neighbor_int[Valid, 0], flow_neighbor_int[Valid, 1], NN_idx, 1, indFrame - 1]))
-
-        #consistencyMap[:, :, NN_idx, indFrame] = (consistency_uv[:, :, NN_idx, 0, indFrame] ** 2 + consistency_uv[:, :, NN_idx, 1, indFrame] ** 2) ** 0.5
-
         '''
         print("Frame {0:3d}: {1:8d} + {2:8d} = {3:8d}"
         .format(indFrame,
@@ -256,17 +224,6 @@ def get_flowNN(args,
         # Round the forward flow neighbor location
         flow_neighbor_int = np.round(copy.deepcopy(flowF_neighbor)).astype(np.int32)
 
-        # Check the forawrd/backward consistency
-        '''
-        IsConsist, _ = FBconsistCheck(flowF_neighbor,
-                                      flowB_vertical,
-                                      flowB_horizont,
-                                      holepixPos,
-                                      args.consistencyThres)
-
-        FBdiff, FB_uv = consistCheck(videoFlowB[:, :, :, indFrame],
-                                     videoFlowF[:, :, :, indFrame])
-        '''
         # Check out-of-boundary
         # Last column and last row does not have valid gradient
         ValidPos = np.logical_and(
@@ -279,27 +236,21 @@ def get_flowNN(args,
         holepixPos = holepixPos[ValidPos, :]
         flowF_neighbor = flowF_neighbor[ValidPos, :]
         flow_neighbor_int = flow_neighbor_int[ValidPos, :]
-        #IsConsist = IsConsist[ValidPos]
 
         # Case 1:
         KnownInd = mask[flow_neighbor_int[:, 0],
                         flow_neighbor_int[:, 1],
                         indFrame + 1] == 0
 
-        #KnownIsConsist = np.logical_and(KnownInd, IsConsist)
-        KnownIsConsist = KnownInd 
-        flowNN[numPixInd[holepixPos[KnownIsConsist, 0],
-                         holepixPos[KnownIsConsist, 1],
+        flowNN[numPixInd[holepixPos[KnownInd, 0],
+                         holepixPos[KnownInd, 1],
                          indFrame].astype(np.int32), :, NN_idx] = \
-                                                flowF_neighbor[KnownIsConsist, :]
+                                                flowF_neighbor[KnownInd, :]
 
-        HaveFlowNN[holepixPos[KnownIsConsist, 0],
-                   holepixPos[KnownIsConsist, 1],
+        HaveFlowNN[holepixPos[KnownInd, 0],
+                   holepixPos[KnownInd, 1],
                    indFrame,
                    NN_idx] = 1
-
-        #consistency_uv[holepixPos[KnownIsConsist, 0], holepixPos[KnownIsConsist, 1], NN_idx, 0, indFrame] = np.abs(FB_uv[holepixPos[KnownIsConsist, 0], holepixPos[KnownIsConsist, 1], 0])
-        #consistency_uv[holepixPos[KnownIsConsist, 0], holepixPos[KnownIsConsist, 1], NN_idx, 1, indFrame] = np.abs(FB_uv[holepixPos[KnownIsConsist, 0], holepixPos[KnownIsConsist, 1], 1])
 
         # Case 2:
         UnknownInd = np.invert(KnownInd)
@@ -309,7 +260,7 @@ def get_flowNN(args,
                                NN_idx] == 1
 
         # Unknown & IsConsist & HaveNNInd
-        Valid_ = np.logical_and.reduce((UnknownInd, HaveNNInd))#, IsConsist))
+        Valid_ = np.logical_and.reduce((UnknownInd, HaveNNInd))
 
         refineVec = np.concatenate((
             (flowF_neighbor[:, 0] - flow_neighbor_int[:, 0]).reshape(-1, 1),
@@ -333,10 +284,6 @@ def get_flowNN(args,
         # Change the out-of-boundary value to 0, in order to run mask[y,x,t]
         # in the next line. It won't affect anything as ValidPos_ is saved already
         flowNN_tmp[np.invert(ValidPos_), :] = 0
-        #ValidNN = mask[flowNN_tmp[:, 0],
-        #               flowNN_tmp[:, 1],
-        #               flowNN_tmp[:, 2]] == 0
-        # Valid = np.logical_and.reduce((Valid_, ValidNN, ValidPos_))
         Valid = np.logical_and.reduce((Valid_, ValidPos_))
 
         # We save the transitive backward flow neighbor flowB_neighbor in flowNN
@@ -352,11 +299,6 @@ def get_flowNN(args,
                    holepixPos[Valid, 1],
                    indFrame,
                    NN_idx] = 1
-
-        #consistency_uv[holepixPos[Valid, 0], holepixPos[Valid, 1], NN_idx, 0, indFrame] = np.maximum(np.abs(FB_uv[holepixPos[Valid, 0], holepixPos[Valid, 1], 0]), np.abs(consistency_uv[flow_neighbor_int[Valid, 0], flow_neighbor_int[Valid, 1], NN_idx, 0, indFrame + 1]))
-        #consistency_uv[holepixPos[Valid, 0], holepixPos[Valid, 1], NN_idx, 1, indFrame] = np.maximum(np.abs(FB_uv[holepixPos[Valid, 0], holepixPos[Valid, 1], 1]), np.abs(consistency_uv[flow_neighbor_int[Valid, 0], flow_neighbor_int[Valid, 1], NN_idx, 1, indFrame + 1]))
-
-        #consistencyMap[:, :, NN_idx, indFrame] = (consistency_uv[:, :, NN_idx, 0, indFrame] ** 2 + consistency_uv[:, :, NN_idx, 1, indFrame] ** 2) ** 0.5
 
         '''
         print("Frame {0:3d}: {1:8d} + {2:8d} = {3:8d}"
@@ -427,48 +369,10 @@ def get_flowNN(args,
     mask_tofill = np.zeros((imgH, imgW, nFrame)).astype(np.bool)
 
     for indFrame in range(nFrame):
-        '''
-        if args.Nonlocal:
-            consistencyMap[:, :, 2, indFrame], _ = consistCheck(
-                videoNonLocalFlowB[:, :, :, 0, indFrame],
-                videoNonLocalFlowF[:, :, :, 0, indFrame])
-            consistencyMap[:, :, 3, indFrame], _ = consistCheck(
-                videoNonLocalFlowB[:, :, :, 1, indFrame],
-                videoNonLocalFlowF[:, :, :, 1, indFrame])
-            consistencyMap[:, :, 4, indFrame], _ = consistCheck(
-                videoNonLocalFlowB[:, :, :, 2, indFrame],
-                videoNonLocalFlowF[:, :, :, 2, indFrame])
-        '''
         HaveNN = np.zeros((imgH, imgW, num_candidate))
-        '''
-        if args.Nonlocal:
-            HaveKeySourceFrameFlowNN, imgKeySourceFrameFlowNN = \
-                get_KeySourceFrame_flowNN(sub,
-                                          indFrame,
-                                          mask,
-                                          videoNonLocalFlowB,
-                                          videoNonLocalFlowF,
-                                          video,
-                                          args.consistencyThres)
-
-            HaveNN[:, :, 2] = HaveKeySourceFrameFlowNN[:, :, 0] == 1
-            HaveNN[:, :, 3] = HaveKeySourceFrameFlowNN[:, :, 1] == 1
-            HaveNN[:, :, 4] = HaveKeySourceFrameFlowNN[:, :, 2] == 1
-        '''
         HaveNN[:, :, 0] = HaveFlowNN[:, :, indFrame, 0] == 1
         HaveNN[:, :, 1] = HaveFlowNN[:, :, indFrame, 1] == 1
 
-        #NotHaveNN = np.logical_and(np.invert(HaveNN.astype(np.bool)),
-        #        np.repeat(np.expand_dims((mask[:, :, indFrame]), 2), num_candidate, axis=2))
-        '''
-        if args.Nonlocal:
-            HaveNN_sum = np.logical_or.reduce((HaveNN[:, :, 0],
-                                               HaveNN[:, :, 1],
-                                               HaveNN[:, :, 2],
-                                               HaveNN[:, :, 3],
-                                               HaveNN[:, :, 4]))
-        else:
-        '''            
         HaveNN_sum = np.logical_or.reduce((HaveNN[:, :, 0],
                                            HaveNN[:, :, 1]))
 
@@ -476,26 +380,6 @@ def get_flowNN(args,
         videoCandidate[:, :, :, 0] = videoBN[:, :, :, indFrame]
         videoCandidate[:, :, :, 1] = videoFN[:, :, :, indFrame]
 
-        '''
-        if args.Nonlocal:
-            videoCandidate[:, :, :, 2] = imgKeySourceFrameFlowNN[:, :, :, 0]
-            videoCandidate[:, :, :, 3] = imgKeySourceFrameFlowNN[:, :, :, 1]
-            videoCandidate[:, :, :, 4] = imgKeySourceFrameFlowNN[:, :, :, 2]
-        consistencyMap[:, :, :, indFrame] = np.exp( - consistencyMap[:, :, :, indFrame] / args.alpha)
-        consistencyMap[NotHaveNN[:, :, 0], 0, indFrame] = 0
-        consistencyMap[NotHaveNN[:, :, 1], 1, indFrame] = 0
-        if args.Nonlocal:
-            consistencyMap[NotHaveNN[:, :, 2], 2, indFrame] = 0
-            consistencyMap[NotHaveNN[:, :, 3], 3, indFrame] = 0
-            consistencyMap[NotHaveNN[:, :, 4], 4, indFrame] = 0
-        '''
-        '''
-        # weights = (consistencyMap[HaveNN_sum, :, indFrame] * HaveNN[HaveNN_sum, :]) / ((consistencyMap[HaveNN_sum, :, indFrame] * HaveNN[HaveNN_sum, :]).sum(axis=1, keepdims=True) + 1e-16)
-        weights = (consistencyMap[HaveNN_sum, :, indFrame] * HaveNN[HaveNN_sum, :]) / ((consistencyMap[HaveNN_sum, :, indFrame] * HaveNN[HaveNN_sum, :]).sum(axis=1, keepdims=True))
-        # Fix the numerical issue. 0 / 0
-        fix = np.where((consistencyMap[HaveNN_sum, :, indFrame] * HaveNN[HaveNN_sum, :]).sum(axis=1, keepdims=True) == 0)[0]
-        weights[fix, :] = HaveNN[HaveNN_sum, :][fix, :] / HaveNN[HaveNN_sum, :][fix, :].sum(axis=1, keepdims=True)
-        '''
         weights = HaveNN[HaveNN_sum, :] / HaveNN[HaveNN_sum, :].sum(axis=1, keepdims=True)
 
         # Fuse RGB channel independently 
