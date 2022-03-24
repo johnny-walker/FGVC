@@ -392,10 +392,12 @@ def complete_flow(args, corrFlow, flow_mask, mode, edge=None):
         flow = corrFlow[..., i]
         if mode == 'forward':
             flow_mask_img = flow_mask[:, :, i]
-            flow_mask_gradient_img = gradient_mask(flow_mask_img)
+            if edge is not None:
+                flow_mask_gradient_img = gradient_mask(flow_mask_img)
         elif mode == 'backward':
             flow_mask_img = flow_mask[:, :, i + 1]
-            flow_mask_gradient_img = gradient_mask(flow_mask_img)
+            if edge is not None:
+                flow_mask_gradient_img = gradient_mask(flow_mask_img)
         else: # nonlocal_backward
             assert edge == None
 
