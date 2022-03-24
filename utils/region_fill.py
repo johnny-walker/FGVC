@@ -3,12 +3,16 @@ import cv2
 from scipy import sparse
 from scipy.sparse.linalg import spsolve
 
-# fill the dilated pixels (orignal is outside the mask) with corresponding flow
+# fill the edge pixels' flows from the dilated pixels (orignal is outside the mask) 
 def regionfill(I, mask, factor=1.0):
+    # clone if size unchanged
     resize_mask = cv2.resize(mask.astype(float), (0, 0), fx=factor, fy=factor) > 0
-    resize_I = cv2.resize(I.astype(float), (0, 0), fx=factor, fy=factor) # clone if size unchanged
+    resize_I = cv2.resize(I.astype(float), (0, 0), fx=factor, fy=factor) 
+    
     maskPerimeter = findBoundaryPixels(resize_mask)
     regionfillLaplace(resize_I, resize_mask, maskPerimeter)
+    
+    # restore
     resize_I = cv2.resize(resize_I, (I.shape[1], I.shape[0]))
     resize_I[mask == 0] = I[mask == 0]
     return resize_I
